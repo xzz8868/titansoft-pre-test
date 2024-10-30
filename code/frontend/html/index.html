@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>客戶列表</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">客戶列表</h1>
+        <div class="text-right mb-3">
+            <a href="new_customer.html" class="btn btn-primary">新增客戶</a>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>名稱</th>
+                    <th>電子郵件</th>
+                    <th>性別</th>
+                    <th>註冊時間</th>
+                    <th>過去一年的交易總額</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="customer-table-body">
+                <!-- 客戶資料將通過 JavaScript 動態插入 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 引入必要的腳本 -->
+    <script src="/config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

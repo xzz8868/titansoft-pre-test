@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>交易紀錄</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">交易紀錄</h1>
+        <form id="filter-form" class="form-inline mb-3">
+            <input type="hidden" id="customer-id">
+            <div class="form-group mx-sm-3 mb-2">
+                <label for="from-date" class="sr-only">開始日期</label>
+                <input type="date" class="form-control" id="from-date" required>
+            </div>
+            <div class="form-group mx-sm-3 mb-2">
+                <label for="to-date" class="sr-only">結束日期</label>
+                <input type="date" class="form-control" id="to-date" required>
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">篩選</button>
+        </form>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>交易時間</th>
+                    <th>金額</th>
+                    <th>序列號</th>
+                </tr>
+            </thead>
+            <tbody id="transaction-table-body">
+                <!-- 交易資料將通過 JavaScript 動態插入 -->
+            </tbody>
+        </table>
+        <a href="index.html" class="btn btn-secondary">返回列表</a>
+    </div>
+
+    <!-- 引入必要的腳本 -->
+    <script src="/config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="assets/js/transactions.js"></script>
+</body>
+</html>
