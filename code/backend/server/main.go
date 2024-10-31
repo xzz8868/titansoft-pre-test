@@ -39,7 +39,7 @@ func main() {
 	transactionRepo := repositories.NewTransactionRepository(db)
 
 	// 初始化 Service
-	customerService := services.NewCustomerService(customerRepo, cfg.Salt)
+	customerService := services.NewCustomerService(customerRepo, transactionRepo, cfg.Salt)
 	transactionService := services.NewTransactionService(transactionRepo)
 
 	// 初始化 Controller

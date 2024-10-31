@@ -11,7 +11,7 @@ import (
 )
 
 type CustomerService interface {
-	GetAllCustomers() ([]*models.Customer, error)
+	GetAllCustomers() ([]*models.CustomerDTO, error)
 	CreateCustomer(customer *models.Customer) error
 	GetCustomerByID(id uuid.UUID) (*models.Customer, error)
 	UpdateCustomer(customer *models.Customer) error
@@ -20,16 +20,45 @@ type CustomerService interface {
 }
 
 type customerService struct {
-	repo repositories.CustomerRepository
-	salt string
+	repo            repositories.CustomerRepository
+	transactionRepo repositories.TransactionRepository
+	salt            string
 }
 
-func (s *customerService) GetAllCustomers() ([]*models.Customer, error) {
-	return s.repo.GetAll()
+func NewCustomerService(repo repositories.CustomerRepository, transactionRepo repositories.TransactionRepository, salt string) CustomerService {
+	return &customerService{
+		repo:            repo,
+		transactionRepo: transactionRepo,
+		salt:            salt,
+	}
 }
 
-func NewCustomerService(repo repositories.CustomerRepository, salt string) CustomerService {
-	return &customerService{repo: repo, salt: salt}
+func (s *customerService) GetAllCustomers() ([]*models.CustomerDTO, error) {
+	customers, err := s.repo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	totalAmounts, err := s.transactionRepo.GetTotalAmountsByCustomersInPastYear()
+	if err != nil {
+		return nil, err
+	}
+
+	var customerDTOs []*models.CustomerDTO
+	for _, customer := range customers {
+		totalAmount := totalAmounts[customer.ID] // 如果没有记录，默认为0
+
+		customerDTO := &models.CustomerDTO{
+			ID:                     customer.ID,
+			Name:                   customer.Name,
+			Email:                  customer.Email,
+			Gender:                 customer.Gender,
+			TotalTransactionAmount: totalAmount,
+		}
+		customerDTOs = append(customerDTOs, customerDTO)
+	}
+
+	return customerDTOs, nil
 }
 
 func (s *customerService) CreateCustomer(customer *models.Customer) error {
