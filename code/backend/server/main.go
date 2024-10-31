@@ -39,7 +39,7 @@ func main() {
 	transactionRepo := repositories.NewTransactionRepository(db)
 
 	// 初始化 Service
-	customerService := services.NewCustomerService(customerRepo)
+	customerService := services.NewCustomerService(customerRepo, cfg.Salt)
 	transactionService := services.NewTransactionService(transactionRepo)
 
 	// 初始化 Controller
@@ -58,6 +58,7 @@ func main() {
 	e.GET("/customers/:id", customerController.GetCustomerByID)
 	e.GET("/customers/:id/transactions", transactionController.GetTransactionsByCustomer)
 	e.PUT("/customers/:id", customerController.UpdateCustomer)
+	e.PUT("/customers/password/:id", customerController.UpdateCustomerPassword)
 	e.DELETE("/customers/:id", customerController.DeleteCustomer)
 
 	e.POST("/transactions", transactionController.CreateTransaction)

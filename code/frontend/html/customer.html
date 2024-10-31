@@ -26,6 +26,22 @@
                     <option value="other">其他</option>
                 </select>
             </div>
+
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="change-password">
+                <label class="form-check-label" for="change-password">修改密碼</label>
+            </div>
+            <div id="password-fields" style="display: none;">
+                <div class="form-group">
+                    <label for="new-password">新密碼</label>
+                    <input type="password" class="form-control" id="new-password">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">確認新密碼</label>
+                    <input type="password" class="form-control" id="confirm-password">
+                </div>
+            </div>
+
             <button type="submit" class="btn btn-primary">保存修改</button>
             <a href="index.html" class="btn btn-secondary">返回列表</a>
         </form>

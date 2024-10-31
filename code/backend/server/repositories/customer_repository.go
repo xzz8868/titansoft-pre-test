@@ -12,6 +12,7 @@ type CustomerRepository interface {
 	Create(customer *models.Customer) error
 	GetByID(id uuid.UUID) (*models.Customer, error)
 	Update(customer *models.Customer) error
+	UpdatePassword(customer *models.Customer) error
 	Delete(id uuid.UUID) error
 }
 
@@ -24,11 +25,11 @@ func NewCustomerRepository(db *gorm.DB) CustomerRepository {
 }
 
 func (r *customerRepository) GetAll() ([]*models.Customer, error) {
-	var customers []*models.Customer
-	if err := r.db.Find(&customers).Error; err != nil {
-		return nil, err
-	}
-	return customers, nil
+    var customers []*models.Customer
+    if err := r.db.Omit("Password").Find(&customers).Error; err != nil {
+        return nil, err
+    }
+    return customers, nil
 }
 
 func (r *customerRepository) Create(customer *models.Customer) error {
@@ -36,15 +37,19 @@ func (r *customerRepository) Create(customer *models.Customer) error {
 }
 
 func (r *customerRepository) GetByID(id uuid.UUID) (*models.Customer, error) {
-	var customer models.Customer
-	if err := r.db.First(&customer, "id = ?", id).Error; err != nil {
-		return nil, err
-	}
-	return &customer, nil
+    var customer models.Customer
+    if err := r.db.Omit("Password").First(&customer, "id = ?", id).Error; err != nil {
+        return nil, err
+    }
+    return &customer, nil
 }
 
 func (r *customerRepository) Update(customer *models.Customer) error {
-	return r.db.Save(customer).Error
+	return r.db.Model(&customer).Select("Name", "Email", "Gender").Updates(customer).Error
+}
+
+func (r *customerRepository) UpdatePassword(customer *models.Customer) error {
+	return r.db.Model(&customer).Select("Password").Updates(customer).Error
 }
 
 func (r *customerRepository) Delete(id uuid.UUID) error {

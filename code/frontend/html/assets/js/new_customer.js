@@ -4,10 +4,24 @@ $(document).ready(function() {
     $('#new-customer-form').submit(function(e) {
         e.preventDefault();
 
+        const password = $('#password').val();
+        const confirmPassword = $('#confirm-password').val();
+
+        // 密碼驗證
+        if (password.length < 8) {
+            alert('密碼至少需要8個字元');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            alert('密碼和確認密碼不一致');
+            return;
+        }
+
         const newCustomer = {
             name: $('#name').val(),
             email: $('#email').val(),
-            password: $('#password').val(),
+            password: password,
             gender: $('#gender').val()
         };
 
