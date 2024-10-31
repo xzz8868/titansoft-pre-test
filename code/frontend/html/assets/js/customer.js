@@ -36,6 +36,7 @@ $(document).ready(function() {
             data: JSON.stringify(updatedCustomer),
             success: function() {
                 alert('客戶資料已更新');
+                window.location.href = 'index.html';
             },
             error: function() {
                 alert('更新失敗');
