@@ -28,7 +28,6 @@ $(document).ready(function() {
                                 <td>${customer.name}</td>
                                 <td>${customer.email}</td>
                                 <td>${genderMap[customer.gender]}</td>
-                                <td>${new Date(customer.registration_time).toLocaleDateString()}</td>
                                 <td>${totalAmount.toFixed(2)}</td>
                                 <td>
                                     <a href="customer.html?id=${customer.id}" class="btn btn-sm btn-info">查看/編輯</a>
