@@ -1,6 +1,14 @@
 $(document).ready(function() {
     // 獲取 API 基礎 URL
     const API_BASE_URL = window._config.API_BASE_URL || 'http://localhost:8080';
+
+     // 性別對照表
+    const genderMap = {
+        'male': '男性',
+        'female': '女性',
+        'other': '其他'
+    };
+
     // 從後端獲取客戶列表
     $.ajax({
         url: `${API_BASE_URL}/customers`,
@@ -19,7 +27,7 @@ $(document).ready(function() {
                             <tr>
                                 <td>${customer.name}</td>
                                 <td>${customer.email}</td>
-                                <td>${customer.gender}</td>
+                                <td>${genderMap[customer.gender]}</td>
                                 <td>${new Date(customer.registration_time).toLocaleDateString()}</td>
                                 <td>${totalAmount.toFixed(2)}</td>
                                 <td>
