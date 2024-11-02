@@ -1,0 +1,33 @@
+steps:
+  # Build the pre-test-server image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-server', '/code/backend/server']
+    id: Build pre-test-server
+
+  # Build the pre-test-generator image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-generator', '/code/backend/generator']
+    id: Build pre-test-generator
+
+  # Build the pre-test-web-server image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-web-server', '/code/frontend']
+    id: Build pre-test-web-server
+
+  # Push the pre-test-server image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-server']
+    id: Push pre-test-server
+    waitFor: ['Build pre-test-server']
+
+  # Push the pre-test-generator image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-generator']
+    id: Push pre-test-generator
+    waitFor: ['Build pre-test-generator']
+
+  # Push the pre-test-web-server image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-web-server']
+    id: Push pre-test-web-server
+    waitFor: ['Build pre-test-web-server']
