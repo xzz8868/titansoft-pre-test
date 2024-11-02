@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -26,6 +27,18 @@ func (c *CustomerController) GetAllCustomers(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, customers)
 }
 
+func (c *CustomerController) GetLimitedCustomers(ctx echo.Context) error {
+	num, err := strconv.Atoi(ctx.Param("num"))
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+	customers, err := c.service.GetLimitedCustomers(num)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return ctx.JSON(http.StatusOK, customers)
+}
+
 func (c *CustomerController) CreateCustomer(ctx echo.Context) error {
 	customer := new(models.Customer)
 	if err := ctx.Bind(customer); err != nil {
@@ -39,6 +52,24 @@ func (c *CustomerController) CreateCustomer(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return ctx.JSON(http.StatusCreated, customer)
+}
+
+func (c *CustomerController) CreateMultiCustomers(ctx echo.Context) error {
+	var customers []*models.Customer
+	if err := ctx.Bind(&customers); err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	successCount, failCount, err := c.service.CreateMultiCustomers(customers)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	result := map[string]int{
+		"successCount": successCount,
+		"failCount":    failCount,
+	}
+	return ctx.JSON(http.StatusCreated, result)
 }
 
 func (c *CustomerController) GetCustomerByID(ctx echo.Context) error {

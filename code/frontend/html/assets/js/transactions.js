@@ -1,11 +1,11 @@
 $(document).ready(function() {
-    const API_BASE_URL = window._config.API_BASE_URL || 'http://localhost:8080';
-    
+    const SERVER_BASE_URL = window._config.SERVER_BASE_URL || 'http://localhost:8080';
+
     const urlParams = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('id');
     $('#customer-id').val(customerId);
 
-    // 預設為過去一個月
+    // Default past month for filtering
     let fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - 1);
     $('#from-date').val(formatDate(fromDate));
@@ -13,37 +13,85 @@ $(document).ready(function() {
     let toDate = new Date();
     $('#to-date').val(formatDate(toDate));
 
-    // 初始載入交易紀錄
+    // Global variable to store transactions
+    let transactionsData = [];
+
+    // Initial transaction load
     loadTransactions();
 
-    // 篩選表單提交事件
+    // Form submission for filtering
     $('#filter-form').submit(function(e) {
         e.preventDefault();
-        loadTransactions();
+        filterTransactions();
     });
 
     function loadTransactions() {
+        $.ajax({
+            url: `${SERVER_BASE_URL}/customers/${customerId}/transactions`,
+            method: 'GET',
+            success: function(transactions) {
+                transactionsData = transactions;
+                displayTransactions(transactionsData);
+            },
+            error: function() {
+                alert('Unable to retrieve transaction records');
+            }
+        });
+    }
+
+    function filterTransactions() {
         let from = $('#from-date').val();
         let to = $('#to-date').val();
 
+        // Filter the stored data
+        let filteredData = transactionsData.filter(function(txn) {
+            let txnDate = txn.time.substring(0,10);
+            return txnDate >= from && txnDate <= to;
+        });
+
+        displayTransactions(filteredData);
+
+        // Make a second request to get transactions for the date range
         $.ajax({
-            url: `${API_BASE_URL}/customers/${customerId}/transactions?from=${from}&to=${to}`,
+            url: `${SERVER_BASE_URL}/customers/${customerId}/transactions/date`,
             method: 'GET',
-            success: function(transactions) {
-                $('#transaction-table-body').empty();
-                transactions.forEach(function(txn) {
-                    $('#transaction-table-body').append(`
-                        <tr>
-                            <td>${new Date(txn.time).toLocaleString()}</td>
-                            <td>${txn.amount.toFixed(2)}</td>
-                            <td>${txn.sequence}</td>
-                        </tr>
-                    `);
+            contentType: 'application/json',
+            data: JSON.stringify({ from: from, to: to }),
+            success: function(newTransactions) {
+                // Update transactionsData with newTransactions, avoiding duplicates
+                newTransactions.forEach(function(newTxn) {
+                    let exists = transactionsData.some(function(txn) {
+                        return txn.id === newTxn.id;
+                    });
+                    if (!exists) {
+                        transactionsData.push(newTxn);
+                    }
                 });
+
+                // Filter again with the updated transactionsData
+                let updatedFilteredData = transactionsData.filter(function(txn) {
+                    let txnDate = txn.time.substring(0,10);
+                    return txnDate >= from && txnDate <= to;
+                });
+
+                displayTransactions(updatedFilteredData);
             },
             error: function() {
-                alert('無法獲取交易紀錄');
+                alert('Unable to retrieve transaction records for the selected date range');
             }
+        });
+    }
+
+    function displayTransactions(transactions) {
+        $('#transaction-table-body').empty();
+        transactions.forEach(function(txn) {
+            $('#transaction-table-body').append(`
+                <tr>
+                    <td>${new Date(txn.time).toLocaleString()}</td>
+                    <td>${txn.amount.toFixed(2)}</td>
+                    <td>${txn.sequence}</td>
+                </tr>
+            `);
         });
     }
 

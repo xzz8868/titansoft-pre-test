@@ -18,7 +18,7 @@ type Config struct {
 func LoadConfig() (*Config, error) {
 	config := &Config{
 		DBUser:     getEnv("DB_USER", "test"),
-		DBPassword: getEnv("DB_PASSWORD", ""),
+		DBPassword: getEnv("DB_PASSWORD", "test"),
 		DBHost:     getEnv("DB_HOST", "mariadb"),
 		DBPort:     getEnv("DB_PORT", "3306"),
 		DBName:     getEnv("DB_NAME", "pretest"),

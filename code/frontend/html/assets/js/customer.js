@@ -1,12 +1,12 @@
 $(document).ready(function() {
-    const API_BASE_URL = window._config.API_BASE_URL || 'http://localhost:8080';
+    const SERVER_BASE_URL = window._config.SERVER_BASE_URL || 'http://localhost:8080';
 
     const urlParams = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('id');
 
     // 獲取客戶詳細資訊
     $.ajax({
-        url: `${API_BASE_URL}/customers/${customerId}`,
+        url: `${SERVER_BASE_URL}/customers/${customerId}`,
         method: 'GET',
         success: function(customer) {
             $('#customer-id').val(customer.id);
@@ -44,7 +44,7 @@ $(document).ready(function() {
 
         // 更新基本資料
         $.ajax({
-            url: `${API_BASE_URL}/customers/${customerId}`,
+            url: `${SERVER_BASE_URL}/customers/${customerId}`,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(updatedCustomer),
@@ -71,7 +71,7 @@ $(document).ready(function() {
                     };
 
                     $.ajax({
-                        url: `${API_BASE_URL}/customers/password/${customerId}`,
+                        url: `${SERVER_BASE_URL}/customers/password/${customerId}`,
                         method: 'PUT',
                         contentType: 'application/json',
                         data: JSON.stringify(passwordData),

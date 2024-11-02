@@ -10,9 +10,10 @@ import (
 )
 
 type TransactionRepository interface {
-	GetByCustomerIDAndDateRange(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error)
+	GetAllTransactionsByCustomerID(id uuid.UUID) ([]*models.Transaction, error)
+	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error)
 	Create(transaction *models.Transaction) error
-	GetByID(id uuid.UUID) (*models.Transaction, error)
+	CreateMultiTransactions(transactions []*models.Transaction) error
 	Update(transaction *models.Transaction) error
 	Delete(id uuid.UUID) error
 	GetTotalAmountsByCustomersInPastYear() (map[uuid.UUID]float64, error)
@@ -22,7 +23,19 @@ type transactionRepository struct {
 	db *gorm.DB
 }
 
-func (r *transactionRepository) GetByCustomerIDAndDateRange(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error) {
+func NewTransactionRepository(db *gorm.DB) TransactionRepository {
+	return &transactionRepository{db}
+}
+
+func (r *transactionRepository) GetAllTransactionsByCustomerID(customerID uuid.UUID) ([]*models.Transaction, error) {
+	var transactions []*models.Transaction
+	if err := r.db.Where("customer_id = ?", customerID).Find(&transactions).Error; err != nil {
+		return nil, err
+	}
+	return transactions, nil
+}
+
+func (r *transactionRepository) GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 	if err := r.db.Where("customer_id = ? AND time BETWEEN ? AND ?", customerID, from, to).Find(&transactions).Error; err != nil {
 		return nil, err
@@ -30,20 +43,12 @@ func (r *transactionRepository) GetByCustomerIDAndDateRange(customerID uuid.UUID
 	return transactions, nil
 }
 
-func NewTransactionRepository(db *gorm.DB) TransactionRepository {
-	return &transactionRepository{db}
-}
-
 func (r *transactionRepository) Create(transaction *models.Transaction) error {
 	return r.db.Create(transaction).Error
 }
 
-func (r *transactionRepository) GetByID(id uuid.UUID) (*models.Transaction, error) {
-	var transaction models.Transaction
-	if err := r.db.First(&transaction, "id = ?", id).Error; err != nil {
-		return nil, err
-	}
-	return &transaction, nil
+func (r *transactionRepository) CreateMultiTransactions(transactions []*models.Transaction) error {
+	return r.db.Create(&transactions).Error
 }
 
 func (r *transactionRepository) Update(transaction *models.Transaction) error {

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>交易資料產生器</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">交易資料產生器</h1>
+        <form id="generate-transactions-form">
+            <div class="form-group">
+                <label for="name">交易資料產生筆數</label>
+                <input type="text" class="form-control" id="transactions_num" required>
+            </div>
+            <div class="form-group">
+                <label for="name">交易資料隨機產生於幾個客戶</label>
+                <input type="text" class="form-control" id="customers_num" required>
+            </div>
+            <button type="submit" class="btn btn-primary">產生資料</button>
+            <a href="index.html" class="btn btn-secondary">返回列表</a>
+        </form>
+    </div>
+
+    <!-- 引入必要的腳本 -->
+    <script src="/config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="assets/js/transactions_generator.js"></script>
+</body>
+</html>

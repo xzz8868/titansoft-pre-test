@@ -1,6 +1,6 @@
 $(document).ready(function() {
     // 獲取 API 基礎 URL
-    const API_BASE_URL = window._config.API_BASE_URL || 'http://localhost:8080';
+    const SERVER_BASE_URL = window._config.SERVER_BASE_URL || 'http://localhost:8080';
 
     // 性別對照表
     const genderMap = {
@@ -11,7 +11,7 @@ $(document).ready(function() {
 
     // 從後端獲取客戶列表
     $.ajax({
-        url: `${API_BASE_URL}/customers`,
+        url: `${SERVER_BASE_URL}/customers`,
         method: 'GET',
         success: function(customers) {
             customers.forEach(function(customer) {

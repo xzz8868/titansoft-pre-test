@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    const API_BASE_URL = window._config.API_BASE_URL || 'http://localhost:8080';
+    const SERVER_BASE_URL = window._config.SERVER_BASE_URL || 'http://localhost:8080';
 
     $('#new-customer-form').submit(function(e) {
         e.preventDefault();
@@ -26,7 +26,7 @@ $(document).ready(function() {
         };
 
         $.ajax({
-            url: `${API_BASE_URL}/customers`,
+            url: `${SERVER_BASE_URL}/customers`,
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(newCustomer),

@@ -1,35 +1,35 @@
-# 使用官方的 Go 1.21 映像作為構建階段
-FROM golang:1.21 as builder
+# Use the official Go 1.21 image based on Alpine as the build stage
+FROM golang:1.21-alpine as builder
 
-# 設定工作目錄
+# Set the working directory
 WORKDIR /app
 
-# 將 go.mod 和 go.sum 複製到工作目錄
+# Copy go.mod and go.sum to the working directory
 COPY go.mod go.sum ./
 
-# 下載依賴
+# Install build dependencies
+RUN apk add --no-cache gcc libc-dev
+
+# Download dependencies
 RUN go mod download
 
-# 複製所有源代碼到工作目錄
+# Copy all source code to the working directory
 COPY . .
 
-# 編譯應用程式
-RUN go build -o main .
+# Compile the application
+RUN go build -o server .
 
-# 使用輕量級的運行時映像
-FROM debian:bullseye-slim
+# Use a lightweight Alpine runtime image
+FROM alpine:3.20
 
-# 設定工作目錄
+# Set the working directory
 WORKDIR /app
 
-# 從構建階段複製二進制文件到運行時映像
-COPY --from=builder /app/main .
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates
 
-# 設定環境變數，根據需要修改
-ENV PORT=8080
+# Copy the binary file from the build stage to the runtime image
+COPY --from=builder /app/server .
 
-# 暴露應用程式埠
-EXPOSE ${PORT}
-
-# 執行應用程式
-CMD ["./main"]
+# Execute the application
+CMD ["./server"]
