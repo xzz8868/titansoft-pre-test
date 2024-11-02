@@ -31,3 +31,6 @@ steps:
     args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-web-server']
     id: Push pre-test-web-server
     waitFor: ['Build pre-test-web-server']
+    
+options:
+  logging: CLOUD_LOGGING_ONLY
