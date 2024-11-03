@@ -1,0 +1,205 @@
+---
+apiVersion: "v1"
+kind: "Namespace"
+metadata:
+  name: "pre-test"
+---
+apiVersion: "v1"
+kind: "ConfigMap"
+metadata:
+  name: "pre-test-server-config"
+  namespace: "pre-test"
+  labels:
+    app: "pre-test"
+data:
+  DB_USER: "server"
+  DB_HOST: "10.100.176.3"
+  DB_PORT: "3306"
+  DB_NAME: "pretest"
+  PORT: "8080"
+---
+apiVersion: "v1"
+kind: "ConfigMap"
+metadata:
+  name: "pre-test-generator-config"
+  namespace: "pre-test"
+  labels:
+    app: "pre-test"
+data:
+  GENERATOR_SERVER_PORT: "8080"
+  BackendServerEndpoint: "http://pre-test-server-service:8080"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "pre-test-server"
+  namespace: "pre-test"
+  labels:
+    app: "pre-test-server"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "pre-test-server"
+  template:
+    metadata:
+      labels:
+        app: "pre-test-server"
+    spec:
+      containers:
+      - name: "pre-test-server"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-server:latest"
+        envFrom:
+        - configMapRef:
+            name: "pre-test-server-config"
+        - secretRef:
+            name: "pre-test-server-secret"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "pre-test-generator"
+  namespace: "pre-test"
+  labels:
+    app: "pre-test-generator"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "pre-test-generator"
+  template:
+    metadata:
+      labels:
+        app: "pre-test-generator"
+    spec:
+      containers:
+      - name: "pre-test-generator"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-generator:latest"
+        envFrom:
+        - configMapRef:
+            name: "pre-test-generator-config"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "pre-test-web-server"
+  namespace: "pre-test"
+  labels:
+    app: "pre-test-web-server"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "pre-test-web-server"
+  template:
+    metadata:
+      labels:
+        app: "pre-test-web-server"
+    spec:
+      containers:
+      - name: "pre-test-web-server"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-web-server:latest"
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "256Mi"
+          requests:
+            cpu: "250m"
+            memory: "128Mi"
+
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "pre-test-server-service"
+  namespace: "pre-test"
+spec:
+  selector:
+    app: "pre-test-server"
+  ports:
+  - protocol: "TCP"
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "pre-test-generator-service"
+  namespace: "pre-test"
+spec:
+  selector:
+    app: "pre-test-generator"
+  ports:
+  - protocol: "TCP"
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "pre-test-web-server-service"
+  namespace: "pre-test"
+spec:
+  selector:
+    app: "pre-test-web-server"
+  ports:
+  - protocol: "TCP"
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pre-test-ingress
+  namespace: pre-test
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+      - pre-test.davidliao.net
+      secretName: tls-secret
+  rules:
+  - http:
+      paths:
+      - path: /customers
+        pathType: Prefix
+        backend:
+          service:
+            name: pre-test-server-service
+            port:
+              number: 8080
+      - path: /transactions
+        pathType: Prefix
+        backend:
+          service:
+            name: pre-test-server-service
+            port:
+              number: 8080
+      - path: /generate
+        pathType: Prefix
+        backend:
+          service:
+            name: pre-test-generator-service
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pre-test-web-server-service
+            port:
+              number: 8080
