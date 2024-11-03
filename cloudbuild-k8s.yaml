@@ -1,8 +1,15 @@
 steps:
-  # Deploy to Kubernetes only if there are changes in the Kubernetes configuration
+  # Prepare credentials
+  - name: gcr.io/cloud-builders/gcloud
+    args: ['container', 'clusters', 'get-credentials', 'autopilot-cluster-2', '--region', 'asia-east1']
+    id: 'Prepare credentials'
+  # Deploy to Kubernetes
   - name: 'gcr.io/cloud-builders/kubectl'
     args: ['apply', '-f', 'pre-test-deploy.yaml']
     id: Deploy to Kubernetes
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=asia-east1'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=autopilot-cluster-2'
 
 options:
   logging: CLOUD_LOGGING_ONLY
