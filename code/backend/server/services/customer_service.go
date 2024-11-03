@@ -19,6 +19,7 @@ type CustomerService interface {
 	UpdateCustomer(customer *models.Customer) error
 	UpdateCustomerPassword(customer *models.Customer) error
 	DeleteCustomer(id uuid.UUID) error
+	ResetAllCustomerData() error
 }
 
 type customerService struct {
@@ -159,6 +160,10 @@ func (s *customerService) UpdateCustomerPassword(customer *models.Customer) erro
 
 func (s *customerService) DeleteCustomer(id uuid.UUID) error {
 	return s.customerRepo.DeleteCustomer(id)
+}
+
+func (s *customerService) ResetAllCustomerData() error {
+	return s.customerRepo.ResetAllCustomerData()
 }
 
 func (s *customerService) hashPassword(password string) (string, error) {

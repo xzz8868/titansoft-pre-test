@@ -129,3 +129,11 @@ func (c *CustomerController) DeleteCustomer(ctx echo.Context) error {
 	}
 	return ctx.NoContent(http.StatusNoContent)
 }
+
+func (c *CustomerController) ResetAllCustomerData(ctx echo.Context) error {
+	if err := c.service.ResetAllCustomerData(); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}

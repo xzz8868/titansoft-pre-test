@@ -53,20 +53,28 @@ func main() {
 	e.Use(middleware.CORS())
 
 	// 設定路由
-	e.POST("/customers", customerController.CreateCustomer)
-	e.POST("/customers/multi", customerController.CreateMultiCustomers)
+	// FrontEnd用
 	e.GET("/customers", customerController.GetAllCustomers)
-	e.GET("/customers/limit/:num", customerController.GetLimitedCustomers)
 	e.GET("/customers/:id", customerController.GetCustomerByID)
+	e.POST("/customers", customerController.CreateCustomer)
 	e.PUT("/customers/:id", customerController.UpdateCustomer)
 	e.PUT("/customers/password/:id", customerController.UpdateCustomerPassword)
-	e.DELETE("/customers/:id", customerController.DeleteCustomer)
 
 	e.GET("/customers/:id/transactions", transactionController.GetAllTransactionByCustomerID)
 	e.GET("/customers/:id/transactions/date", transactionController.GetDateRangeTransactionsByCustomerID)
 
-	e.POST("/transactions", transactionController.CreateTransaction)
+	e.DELETE("/customers/reset", customerController.ResetAllCustomerData)
+
+	// Generator用
+	e.GET("/customers/limit/:num", customerController.GetLimitedCustomers)
+	e.POST("/customers/multi", customerController.CreateMultiCustomers)
+
 	e.POST("/transactions/multi", transactionController.CreateMultiTransactions)
+
+	// 尚未啟用
+	e.DELETE("/customers/:id", customerController.DeleteCustomer)
+
+	e.POST("/transactions", transactionController.CreateTransaction)
 	e.PUT("/transactions/:id", transactionController.UpdateTransaction)
 	e.DELETE("/transactions/:id", transactionController.DeleteTransaction)
 
