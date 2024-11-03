@@ -1,0 +1,8 @@
+steps:
+  # Deploy to Kubernetes only if there are changes in the Kubernetes configuration
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'pre-test-deploy.yaml']
+    id: Deploy to Kubernetes
+
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,0 +1,14 @@
+steps:
+  # Build the pre-test-generator image only if there are changes in the generator code
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-generator:$SHORT_SHA', 'code/backend/generator']
+    id: Build pre-test-generator
+
+  # Push the pre-test-generator image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-generator:$SHORT_SHA']
+    id: Push pre-test-generator
+    waitFor: ['Build pre-test-generator']
+
+options:
+  logging: CLOUD_LOGGING_ONLY

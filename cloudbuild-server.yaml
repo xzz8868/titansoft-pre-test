@@ -1,0 +1,14 @@
+steps:
+  # Build the pre-test-server image only if there are changes in the server code
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-server:$SHORT_SHA', 'code/backend/server']
+    id: Build pre-test-server
+
+  # Push the pre-test-server image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-east1-docker.pkg.dev/$PROJECT_ID/pre-test/pre-test-server:$SHORT_SHA']
+    id: Push pre-test-server
+    waitFor: ['Build pre-test-server']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
