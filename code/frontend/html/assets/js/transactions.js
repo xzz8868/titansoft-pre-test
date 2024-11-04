@@ -84,6 +84,7 @@ $(document).ready(function() {
 
     function displayTransactions(transactions) {
         $('#transaction-table-body').empty();
+        let totalAmount = 0;
         transactions.forEach(function(txn) {
             $('#transaction-table-body').append(`
                 <tr>
@@ -92,8 +93,12 @@ $(document).ready(function() {
                     <td>${txn.sequence}</td>
                 </tr>
             `);
+            totalAmount += txn.amount;
         });
-    }
+        // 更新交易總筆數
+        $('#transactions-count').text(`交易總筆數：${transactions.length}`);
+        $('#transactions-totalAmount').text(`交易總金額：${totalAmount.toFixed(2)}`)
+    }    
 
     function formatDate(date) {
         let month = '' + (date.getMonth() + 1);
