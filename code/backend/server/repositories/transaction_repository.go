@@ -55,7 +55,8 @@ func (r *transactionRepository) Create(transaction *models.Transaction) error {
 
 // CreateMultiTransactions inserts multiple transaction records into the database
 func (r *transactionRepository) CreateMultiTransactions(transactions []*models.Transaction) error {
-	return r.db.Create(&transactions).Error
+	batchSize := 100
+	return r.db.CreateInBatches(transactions, batchSize).Error
 }
 
 // Update modifies an existing transaction record in the database
@@ -75,7 +76,7 @@ func (r *transactionRepository) GetTotalAmountsByCustomersInPastYear() (map[uuid
 		TotalAmount float64
 	}
 
-	oneYearAgo := time.Now().AddDate(-1, 0, 0)
+	oneYearAgo := time.Now().AddDate(-1, 0, 0).Truncate(24 * time.Hour)
 	err := r.db.Model(&models.Transaction{}).
 		Select("customer_id, SUM(amount) as total_amount").
 		Where("time >= ?", oneYearAgo).

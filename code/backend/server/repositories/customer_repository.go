@@ -12,7 +12,7 @@ import (
 type CustomerRepository interface {
 	GetAllCustomers() ([]*models.Customer, error)
 	GetLimitedCustomers(num int) ([]*models.Customer, error)
-	CreateCustomers(customer *models.Customer) error
+	CreateCustomer(customer *models.Customer) error
 	CreateMultiCustomers(customers []*models.Customer) (int64, error)
 	GetCustomerByID(id uuid.UUID) (*models.Customer, error)
 	UpdateCustomer(customer *models.Customer) error
@@ -49,14 +49,15 @@ func (r *customerRepository) GetLimitedCustomers(num int) ([]*models.Customer, e
 	return customers, nil
 }
 
-// CreateCustomers inserts a single customer into the database
-func (r *customerRepository) CreateCustomers(customer *models.Customer) error {
+// CreateCustomer inserts a single customer into the database
+func (r *customerRepository) CreateCustomer(customer *models.Customer) error {
 	return r.db.Create(customer).Error
 }
 
 // CreateMultiCustomers performs batch insert for multiple customers, ignoring duplicates
 func (r *customerRepository) CreateMultiCustomers(customers []*models.Customer) (int64, error) {
-	result := r.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&customers)
+	batchSize := 100
+	result := r.db.Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&customers, batchSize)
 	return result.RowsAffected, result.Error
 }
 
