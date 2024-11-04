@@ -27,23 +27,26 @@ func NewTransactionController(transactionService services.TransactionService) Tr
 
 // CreateTransactions handles the creation of transactions
 func (tc *transactionController) CreateTransactions(c echo.Context) error {
+	// Parse "transactions_num" query parameter to integer
 	numTransactionsStr := c.QueryParam("transactions_num")
-	numCustomersStr := c.QueryParam("customers_num")
-
 	numTransactions, err := strconv.Atoi(numTransactionsStr)
 	if err != nil || numTransactions <= 0 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of transactions"})
 	}
 
+	// Parse "customers_num" query parameter to integer
+	numCustomersStr := c.QueryParam("customers_num")
 	numCustomers, err := strconv.Atoi(numCustomersStr)
 	if err != nil || numCustomers <= 0 {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of customers"})
 	}
 
+	// Generate and send transactions using the service layer
 	ctx := c.Request().Context()
 	if err := tc.transactionService.GenerateAndSendTransactions(ctx, numTransactions, numCustomers); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
+	// Return success response
 	return c.JSON(http.StatusOK, map[string]string{"status": "Transactions generated and sent successfully"})
 }

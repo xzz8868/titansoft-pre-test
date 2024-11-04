@@ -33,7 +33,7 @@ func NewCustomerService(cfg *config.Config) CustomerService {
 var emailDomains = []string{"@gmail.com", "@yahoo.com.tw", "@outlook.com", "@icloud.com", "@hotmail.com",
 	"@aol.com", "@mail.com", "@yandex.com", "@protonmail.com", "@gmx.com"}
 
-// GenerateCustomerData generates random customer data
+// GenerateCustomerData generates a list of random customer data
 func (cs *customerService) GenerateCustomerData(num int) ([]models.Customer, error) {
 	log.Printf("Generating data for %d customers", num)
 	var customers []models.Customer
@@ -51,18 +51,20 @@ func (cs *customerService) GenerateCustomerData(num int) ([]models.Customer, err
 	return customers, nil
 }
 
-// CreateMultiCustomersAPICall sends multiple customer data to the backend API
+// CreateMultiCustomersAPICall sends a batch of customer data to the backend API
 func (cs *customerService) CreateMultiCustomersAPICall(ctx context.Context, customers []models.Customer) (int, int, error) {
 	client := &http.Client{}
 	successCount := 0
 	failCount := 0
 
+	// Serialize customer data to JSON
 	customersJson, err := json.Marshal(customers)
 	if err != nil {
 		log.Printf("JSON marshalling error: %v", err)
 		return successCount, failCount, err
 	}
 
+	// Construct the API request
 	url := fmt.Sprintf("%s/customers/multi", cs.cfg.BackendServerEndpoint)
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(customersJson))
 	if err != nil {
@@ -72,6 +74,7 @@ func (cs *customerService) CreateMultiCustomersAPICall(ctx context.Context, cust
 
 	req.Header.Set("Content-Type", "application/json")
 
+	// Execute the HTTP request
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("HTTP request error: %v", err)
@@ -79,6 +82,7 @@ func (cs *customerService) CreateMultiCustomersAPICall(ctx context.Context, cust
 	}
 	defer resp.Body.Close()
 
+	// Handle response based on status code
 	if resp.StatusCode == http.StatusCreated {
 		var result map[string]int
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -96,6 +100,7 @@ func (cs *customerService) CreateMultiCustomersAPICall(ctx context.Context, cust
 	return successCount, failCount, nil
 }
 
+// generateRandomName generates a random 8-character hexadecimal string as a name
 func (cs *customerService) generateRandomName() string {
 	bytes := make([]byte, 4)
 	_, err := rand.Read(bytes)
@@ -106,8 +111,9 @@ func (cs *customerService) generateRandomName() string {
 	return hex.EncodeToString(bytes)
 }
 
+// generateRandomPassword generates a random 16-character hexadecimal password
 func (cs *customerService) generateRandomPassword() string {
-	bytes := make([]byte, 8) // Generates a random 16 character password
+	bytes := make([]byte, 8)
 	_, err := rand.Read(bytes)
 	if err != nil {
 		log.Printf("Error generating random password: %v", err)
@@ -116,12 +122,14 @@ func (cs *customerService) generateRandomPassword() string {
 	return hex.EncodeToString(bytes)
 }
 
+// generateRandomEmail creates an email address by combining a name with a random domain
 func (cs *customerService) generateRandomEmail(name string) string {
 	email := name + emailDomains[rand.Intn(len(emailDomains))]
 	log.Printf("Generated email: %s", email)
 	return email
 }
 
+// randomGender randomly selects a gender from predefined options
 func (cs *customerService) randomGender() models.Gender {
 	genders := []models.Gender{models.Male, models.Female, models.Other}
 	return genders[rand.Intn(len(genders))]
