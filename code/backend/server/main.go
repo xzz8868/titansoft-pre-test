@@ -16,44 +16,44 @@ import (
 )
 
 func main() {
-	// 加載配置
+	// Load configuration
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("載入配置失敗：%v", err)
+		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// 資料庫連線
+	// Connect to the database
 	dsn := cfg.GetDSN()
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("資料庫連線失敗：%v", err)
+		log.Fatalf("Database connection failed: %v", err)
 	}
 
-	// 自動遷移
+	// Auto-migrate database models
 	if err := db.AutoMigrate(&models.Customer{}, &models.Transaction{}); err != nil {
-		log.Fatalf("資料庫遷移失敗：%v", err)
+		log.Fatalf("Database migration failed: %v", err)
 	}
 
-	// 初始化 Repository
+	// Initialize repositories
 	customerRepo := repositories.NewCustomerRepository(db)
 	transactionRepo := repositories.NewTransactionRepository(db)
 
-	// 初始化 Service
+	// Initialize services
 	customerService := services.NewCustomerService(customerRepo, transactionRepo, cfg.Salt)
 	transactionService := services.NewTransactionService(transactionRepo)
 
-	// 初始化 Controller
+	// Initialize controllers
 	customerController := controllers.NewCustomerController(customerService)
 	transactionController := controllers.NewTransactionController(transactionService)
 
-	// 初始化 Echo
+	// Initialize Echo instance
 	e := echo.New()
 
-	// 添加CORS中間件
+	// Add CORS middleware
 	e.Use(middleware.CORS())
 
-	// 設定路由
-	// FrontEnd用
+	// Set up routes
+	// Routes for FrontEnd
 	e.GET("/customers", customerController.GetAllCustomers)
 	e.GET("/customers/:id", customerController.GetCustomerByID)
 	e.POST("/customers", customerController.CreateCustomer)
@@ -65,19 +65,18 @@ func main() {
 
 	e.DELETE("/customers/reset", customerController.ResetAllCustomerData)
 
-	// Generator用
+	// Routes for Generator
 	e.GET("/customers/limit/:num", customerController.GetLimitedCustomers)
 	e.POST("/customers/multi", customerController.CreateMultiCustomers)
 
 	e.POST("/transactions/multi", transactionController.CreateMultiTransactions)
 
-	// 尚未啟用
-	e.DELETE("/customers/:id", customerController.DeleteCustomer)
+	// Disabled routes
+	// e.DELETE("/customers/:id", customerController.DeleteCustomer)
+	// e.POST("/transactions", transactionController.CreateTransaction)
+	// e.PUT("/transactions/:id", transactionController.UpdateTransaction)
+	// e.DELETE("/transactions/:id", transactionController.DeleteTransaction)
 
-	e.POST("/transactions", transactionController.CreateTransaction)
-	e.PUT("/transactions/:id", transactionController.UpdateTransaction)
-	e.DELETE("/transactions/:id", transactionController.DeleteTransaction)
-
-	// 啟動伺服器
+	// Start the server
 	e.Logger.Fatal(e.Start(":" + cfg.ServerPort))
 }

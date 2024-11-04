@@ -9,6 +9,7 @@ import (
 	"github.com/xzz8868/titansoft-pre-test/code/backend/server/models"
 )
 
+// TransactionRepository defines the interface for transaction data operations
 type TransactionRepository interface {
 	GetAllTransactionsByCustomerID(id uuid.UUID) ([]*models.Transaction, error)
 	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error)
@@ -19,14 +20,17 @@ type TransactionRepository interface {
 	GetTotalAmountsByCustomersInPastYear() (map[uuid.UUID]float64, error)
 }
 
+// transactionRepository is the concrete implementation of TransactionRepository
 type transactionRepository struct {
 	db *gorm.DB
 }
 
+// NewTransactionRepository returns a new instance of transactionRepository
 func NewTransactionRepository(db *gorm.DB) TransactionRepository {
 	return &transactionRepository{db}
 }
 
+// GetAllTransactionsByCustomerID retrieves all transactions for a specific customer
 func (r *transactionRepository) GetAllTransactionsByCustomerID(customerID uuid.UUID) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 	if err := r.db.Where("customer_id = ?", customerID).Find(&transactions).Error; err != nil {
@@ -35,6 +39,7 @@ func (r *transactionRepository) GetAllTransactionsByCustomerID(customerID uuid.U
 	return transactions, nil
 }
 
+// GetDateRangeTransactionsByCustomerID retrieves transactions for a customer within a date range
 func (r *transactionRepository) GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 	if err := r.db.Where("customer_id = ? AND time BETWEEN ? AND ?", customerID, from, to).Find(&transactions).Error; err != nil {
@@ -43,22 +48,27 @@ func (r *transactionRepository) GetDateRangeTransactionsByCustomerID(customerID 
 	return transactions, nil
 }
 
+// Create inserts a new transaction record into the database
 func (r *transactionRepository) Create(transaction *models.Transaction) error {
 	return r.db.Create(transaction).Error
 }
 
+// CreateMultiTransactions inserts multiple transaction records into the database
 func (r *transactionRepository) CreateMultiTransactions(transactions []*models.Transaction) error {
 	return r.db.Create(&transactions).Error
 }
 
+// Update modifies an existing transaction record in the database
 func (r *transactionRepository) Update(transaction *models.Transaction) error {
 	return r.db.Save(transaction).Error
 }
 
+// Delete removes a transaction record by its ID
 func (r *transactionRepository) Delete(id uuid.UUID) error {
 	return r.db.Delete(&models.Transaction{}, "id = ?", id).Error
 }
 
+// GetTotalAmountsByCustomersInPastYear calculates the total transaction amounts for each customer in the past year
 func (r *transactionRepository) GetTotalAmountsByCustomersInPastYear() (map[uuid.UUID]float64, error) {
 	var results []struct {
 		CustomerID  uuid.UUID
@@ -75,6 +85,7 @@ func (r *transactionRepository) GetTotalAmountsByCustomersInPastYear() (map[uuid
 		return nil, err
 	}
 
+	// Map customer IDs to their respective total transaction amounts
 	totalAmounts := make(map[uuid.UUID]float64)
 	for _, result := range results {
 		totalAmounts[result.CustomerID] = result.TotalAmount
