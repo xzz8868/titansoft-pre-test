@@ -45,11 +45,11 @@ $(document).ready(function() {
                 url: `${SERVER_BASE_URL}/customers/reset`,
                 method: 'DELETE',
                 success: function() {
-                    alert('Data reset successful!');
+                    alert('資料清除成功!');
                     window.location.href = 'index.html';
                 },
                 error: function() {
-                    alert('Data reset failed!');
+                    alert('資料清除失敗!');
                 }
             });
         }
