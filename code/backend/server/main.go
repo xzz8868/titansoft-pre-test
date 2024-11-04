@@ -21,6 +21,7 @@ func main() {
 	profilerCfg := profiler.Config{
 		Service:        "pre-test-server",
 		ServiceVersion: "1.0.0",
+		DebugLogging:    true,
 		// ProjectID must be set if not running on GCP.
 		// ProjectID: "my-project",
 
