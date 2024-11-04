@@ -2,6 +2,9 @@ package services
 
 import (
 	"encoding/base64"
+	"fmt"
+	"runtime"
+	"sync"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/scrypt"
@@ -44,44 +47,43 @@ func (s *customerService) GetAllCustomers() ([]*models.CustomerDTO, error) {
 		return nil, err
 	}
 
-	totalAmounts, err := s.transactionRepo.GetTotalAmountsByCustomersInPastYear()
+	customerDTOs, err := s.buildCustomerDTOsWithTransactions(customers)
 	if err != nil {
 		return nil, err
-	}
-
-	var customerDTOs []*models.CustomerDTO
-	for _, customer := range customers {
-		totalAmount := totalAmounts[customer.ID] // Default to 0 if no record found
-
-		customerDTO := &models.CustomerDTO{
-			ID:                     customer.ID,
-			Name:                   customer.Name,
-			Email:                  customer.Email,
-			Gender:                 customer.Gender,
-			TotalTransactionAmount: totalAmount,
-		}
-		customerDTOs = append(customerDTOs, customerDTO)
 	}
 
 	return customerDTOs, nil
 }
 
-// GetLimitedCustomers retrieves a limited number of customers and their total transaction amounts in the past year.
+// GetLimitedCustomers retrieves a specified number of customers and their total transaction amounts for the past year.
 func (s *customerService) GetLimitedCustomers(num int) ([]*models.CustomerDTO, error) {
+	// Fetch a limited number of customers from the repository
 	customers, err := s.customerRepo.GetLimitedCustomers(num)
 	if err != nil {
 		return nil, err
 	}
 
+	// Build and return customer DTOs enriched with transaction data
+	customerDTOs, err := s.buildCustomerDTOsWithTransactions(customers)
+	if err != nil {
+		return nil, err
+	}
+
+	return customerDTOs, nil
+}
+
+// buildCustomerDTOsWithTransactions constructs CustomerDTOs with total transaction amounts from the past year.
+func (s *customerService) buildCustomerDTOsWithTransactions(customers []*models.Customer) ([]*models.CustomerDTO, error) {
+	// Retrieve total transaction amounts for each customer from the past year
 	totalAmounts, err := s.transactionRepo.GetTotalAmountsByCustomersInPastYear()
 	if err != nil {
 		return nil, err
 	}
 
 	var customerDTOs []*models.CustomerDTO
+	// Map each customer to a DTO, attaching their transaction total
 	for _, customer := range customers {
-		totalAmount := totalAmounts[customer.ID] // Default to 0 if no record found
-
+		totalAmount := totalAmounts[customer.ID] // Default to zero if not found in map
 		customerDTO := &models.CustomerDTO{
 			ID:                     customer.ID,
 			Name:                   customer.Name,
@@ -91,7 +93,6 @@ func (s *customerService) GetLimitedCustomers(num int) ([]*models.CustomerDTO, e
 		}
 		customerDTOs = append(customerDTOs, customerDTO)
 	}
-
 	return customerDTOs, nil
 }
 
@@ -102,7 +103,7 @@ func (s *customerService) CreateCustomer(customer *models.Customer) error {
 		return err
 	}
 	customer.Password = hashedPassword
-	return s.customerRepo.CreateCustomers(customer)
+	return s.customerRepo.CreateCustomer(customer)
 }
 
 // CreateMultiCustomers hashes passwords for multiple customers and saves them in batch.
@@ -112,37 +113,72 @@ func (s *customerService) CreateMultiCustomers(customers []*models.Customer) (in
 	failCount := 0
 	validCustomers := make([]*models.Customer, 0, len(customers))
 
+	type result struct {
+		customer *models.Customer
+		err      error
+	}
+
+	results := make(chan result, len(customers))
+	var wg sync.WaitGroup
+
+	// Set max concurrency
+	maxGoroutines := runtime.GOMAXPROCS(2)
+	sem := make(chan struct{}, maxGoroutines)
+
 	for _, customer := range customers {
-		if len(customer.Password) < 8 {
+		wg.Add(1)
+		sem <- struct{}{} // Acquire semaphore slot for goroutine
+		go func(c *models.Customer) {
+			defer wg.Done()
+			defer func() { <-sem }() // Release semaphore slot
+
+			// Validate password length
+			if len(c.Password) < 8 {
+				results <- result{nil, fmt.Errorf("password too short for customer %v", c.Email)}
+				return
+			}
+
+			// Generate UUID and hash password
+			c.ID = uuid.New()
+			hashedPassword, err := s.hashPassword(c.Password)
+			if err != nil {
+				results <- result{nil, fmt.Errorf("failed to hash password for customer %v: %w", c.Email, err)}
+				return
+			}
+			c.Password = hashedPassword
+			results <- result{c, nil}
+		}(customer)
+	}
+
+	// Close results channel once all goroutines complete
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect results from goroutines
+	for res := range results {
+		if res.err != nil {
 			failCount++
-			continue // Skip customers with insufficient password length
+		} else {
+			validCustomers = append(validCustomers, res.customer)
+			successCount++
 		}
-		customer.ID = uuid.New()
-		hashedPassword, err := s.hashPassword(customer.Password)
-		if err != nil {
-			failCount++
-			continue
-		}
-		customer.Password = hashedPassword
-		validCustomers = append(validCustomers, customer)
 	}
 
 	if len(validCustomers) == 0 {
 		return successCount, failCount, nil
 	}
 
+	// Batch insert valid customers into the database
 	rowsAffected, err := s.customerRepo.CreateMultiCustomers(validCustomers)
 	if err != nil {
-		// Handle potential errors such as database connection issues
+		// Assuming rowsAffected is accurate, adjust successCount and failCount accordingly
 		failCount += len(validCustomers) - int(rowsAffected)
-		successCount += int(rowsAffected)
-		return successCount, failCount, err
+		return int(rowsAffected), failCount, fmt.Errorf("batch insert error: %w", err)
 	}
 
-	successCount += int(rowsAffected)
-	failCount += len(validCustomers) - int(rowsAffected)
-
-	return successCount, failCount, nil
+	return int(rowsAffected), failCount, nil
 }
 
 // GetCustomerByID retrieves a customer by their unique ID.
