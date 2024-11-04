@@ -168,7 +168,8 @@ func (s *customerService) ResetAllCustomerData() error {
 
 func (s *customerService) hashPassword(password string) (string, error) {
 	salt := []byte(s.salt)
-	dk, err := scrypt.Key([]byte(password), salt, 16384, 8, 1, 32)
+	//Reduce N for faster hash but lower security, recommend N=16384
+	dk, err := scrypt.Key([]byte(password), salt, 1024, 8, 1, 32)
 	if err != nil {
 		return "", err
 	}
