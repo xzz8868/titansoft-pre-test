@@ -60,7 +60,7 @@ func main() {
 	e.PUT("/customers/:id", customerController.UpdateCustomer)
 	e.PUT("/customers/password/:id", customerController.UpdateCustomerPassword)
 
-	e.GET("/customers/:id/transactions", transactionController.GetAllTransactionByCustomerID)
+	e.GET("/customers/:id/transactions", transactionController.GetTransactionsByCustomerID)
 	e.GET("/customers/:id/transactions/date", transactionController.GetDateRangeTransactionsByCustomerID)
 
 	e.DELETE("/customers/reset", customerController.ResetAllCustomerData)

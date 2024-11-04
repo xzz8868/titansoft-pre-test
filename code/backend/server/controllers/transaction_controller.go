@@ -20,13 +20,13 @@ func NewTransactionController(service services.TransactionService) *TransactionC
 	return &TransactionController{service}
 }
 
-// GetAllTransactionByCustomerID retrieves all transactions for a specified customer.
-func (t *TransactionController) GetAllTransactionByCustomerID(ctx echo.Context) error {
+// GetTransactionsByCustomerID retrieves all transactions for a specified customer.
+func (t *TransactionController) GetTransactionsByCustomerID(ctx echo.Context) error {
 	customerID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, "Invalid Customer ID")
 	}
-	transactions, err := t.service.GetAllTransactionByCustomerID(customerID)
+	transactions, err := t.service.GetTransactionsByCustomerID(customerID)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, err.Error())
 	}

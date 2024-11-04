@@ -9,7 +9,7 @@ import (
 )
 
 type TransactionService interface {
-	GetAllTransactionByCustomerID(id uuid.UUID) ([]*models.TransactionDTO, error)
+	GetTransactionsByCustomerID(id uuid.UUID) ([]*models.TransactionDTO, error)
 	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.TransactionDTO, error)
 	CreateTransaction(transaction *models.Transaction) error
 	CreateMultiTransactions(transactions []*models.TransactionDTO) error
@@ -27,8 +27,8 @@ func NewTransactionService(repo repositories.TransactionRepository) TransactionS
 }
 
 // Retrieves all transactions for a given customer, sorts them by time, and maps to DTOs
-func (s *transactionService) GetAllTransactionByCustomerID(customerID uuid.UUID) ([]*models.TransactionDTO, error) {
-	transactions, err := s.repo.GetAllTransactionsByCustomerID(customerID)
+func (s *transactionService) GetTransactionsByCustomerID(customerID uuid.UUID) ([]*models.TransactionDTO, error) {
+	transactions, err := s.repo.GetTransactionsByCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}

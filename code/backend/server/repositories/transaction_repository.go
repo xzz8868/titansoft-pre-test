@@ -11,7 +11,7 @@ import (
 
 // TransactionRepository defines the interface for transaction data operations
 type TransactionRepository interface {
-	GetAllTransactionsByCustomerID(id uuid.UUID) ([]*models.Transaction, error)
+	GetTransactionsByCustomerID(id uuid.UUID) ([]*models.Transaction, error)
 	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error)
 	Create(transaction *models.Transaction) error
 	CreateMultiTransactions(transactions []*models.Transaction) error
@@ -30,8 +30,8 @@ func NewTransactionRepository(db *gorm.DB) TransactionRepository {
 	return &transactionRepository{db}
 }
 
-// GetAllTransactionsByCustomerID retrieves all transactions for a specific customer
-func (r *transactionRepository) GetAllTransactionsByCustomerID(customerID uuid.UUID) ([]*models.Transaction, error) {
+// GetTransactionsByCustomerID retrieves all transactions for a specific customer
+func (r *transactionRepository) GetTransactionsByCustomerID(customerID uuid.UUID) ([]*models.Transaction, error) {
 	var transactions []*models.Transaction
 	if err := r.db.Where("customer_id = ?", customerID).Find(&transactions).Error; err != nil {
 		return nil, err
