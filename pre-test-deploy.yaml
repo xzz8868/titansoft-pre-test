@@ -67,7 +67,7 @@ spec:
           requests:
             cpu: "250m"
             memory: "128Mi"
-        volumes:
+      volumes:
       - name: google-credential-key-volume
         secret:
           secretName: google-credential-key
