@@ -85,6 +85,8 @@ spec:
         envFrom:
         - configMapRef:
             name: "pre-test-generator-config"
+        - secretRef:
+            name: "pre-test-generator-secret"
         resources:
           limits:
             cpu: "1"
