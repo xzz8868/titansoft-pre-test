@@ -18,8 +18,13 @@ $(document).ready(function() {
                 alert('資料產生成功');
                 window.location.href = 'index.html';
             },
-            error: function() {
-                alert('資料產生失敗');
+            error: function(xhr) {
+                try {
+                    var errorResponse = JSON.parse(xhr.responseText);
+                    alert('資料產生失敗: ' + errorResponse.error);
+                } catch(e) {
+                    alert('資料產生失敗');
+                }
             }
         });
     });

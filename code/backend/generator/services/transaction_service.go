@@ -39,6 +39,10 @@ func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, n
 		return fmt.Errorf("failed to retrieve customer IDs: %w", err)
 	}
 
+	if len(customerIDs) == 0 {
+		return fmt.Errorf("no customer data")
+	}
+
 	// Step 2: Generate transactions
 	transactions := ts.generateTransactions(numTransactions, customerIDs)
 
