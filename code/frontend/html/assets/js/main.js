@@ -33,8 +33,25 @@ $(document).ready(function() {
                 `);
             });
         },
-        error: function(xhr, status, error) {
-            console.error('获取客户列表失败:', error);
+        error: function(error) {
+            console.error('獲取客户列表失败:', error);
         }
     });
+
+    $('#reset_button').click(function() {
+        if (confirm('確定要清除所有資料嗎？')) {
+            $.ajax({
+                url: `${SERVER_BASE_URL}/customers/reset`,
+                method: 'DELETE',
+                success: function() {
+                    alert('資料清除成功！');
+                    window.location.href = 'index.html';
+                },
+                error: function() {
+                    alert('資料清除失敗！');
+                }
+            });
+        }
+    });
+    
 });

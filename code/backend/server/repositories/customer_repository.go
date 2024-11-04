@@ -17,6 +17,7 @@ type CustomerRepository interface {
 	UpdateCustomer(customer *models.Customer) error
 	UpdatePassword(customer *models.Customer) error
 	DeleteCustomer(id uuid.UUID) error
+	ResetAllCustomerData() error
 }
 
 type customerRepository struct {
@@ -71,4 +72,14 @@ func (r *customerRepository) UpdatePassword(customer *models.Customer) error {
 
 func (r *customerRepository) DeleteCustomer(id uuid.UUID) error {
 	return r.db.Delete(&models.Customer{}, "id = ?", id).Error
+}
+
+func (r *customerRepository) ResetAllCustomerData() error {
+	// Delete all customers and associated data
+	err := r.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Customer{}).Error
+	if err != nil {
+		return err
+	}
+	// If there are associated models, they will be deleted due to foreign key constraints
+	return nil
 }

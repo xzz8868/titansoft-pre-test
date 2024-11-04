@@ -12,6 +12,23 @@ import (
 )
 
 func main() {
+	profilerCfg := profiler.Config{
+		Service:        "pre-test-generator",
+		ServiceVersion: "1.0.0",
+		// ProjectID must be set if not running on GCP.
+		// ProjectID: "my-project",
+
+		// For OpenCensus users:
+		// To see Profiler agent spans in APM backend,
+		// set EnableOCTelemetry to true
+		// EnableOCTelemetry: true,
+	}
+
+	// Profiler initialization, best done as early as possible.
+	if err := profiler.Start(profilerCfg); err != nil {
+		log.Fatalf("Failed init profiler：%v", err)
+	}
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)

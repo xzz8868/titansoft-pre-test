@@ -16,6 +16,23 @@ import (
 )
 
 func main() {
+	profilerCfg := profiler.Config{
+		Service:        "pre-test-server",
+		ServiceVersion: "1.0.0",
+		// ProjectID must be set if not running on GCP.
+		// ProjectID: "my-project",
+
+		// For OpenCensus users:
+		// To see Profiler agent spans in APM backend,
+		// set EnableOCTelemetry to true
+		// EnableOCTelemetry: true,
+	}
+
+	// Profiler initialization, best done as early as possible.
+	if err := profiler.Start(profilerCfg); err != nil {
+		log.Fatalf("Failed init profiler：%v", err)
+	}
+
 	// 加載配置
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -53,20 +70,28 @@ func main() {
 	e.Use(middleware.CORS())
 
 	// 設定路由
-	e.POST("/customers", customerController.CreateCustomer)
-	e.POST("/customers/multi", customerController.CreateMultiCustomers)
+	// FrontEnd用
 	e.GET("/customers", customerController.GetAllCustomers)
-	e.GET("/customers/limit/:num", customerController.GetLimitedCustomers)
 	e.GET("/customers/:id", customerController.GetCustomerByID)
+	e.POST("/customers", customerController.CreateCustomer)
 	e.PUT("/customers/:id", customerController.UpdateCustomer)
 	e.PUT("/customers/password/:id", customerController.UpdateCustomerPassword)
-	e.DELETE("/customers/:id", customerController.DeleteCustomer)
 
 	e.GET("/customers/:id/transactions", transactionController.GetAllTransactionByCustomerID)
 	e.GET("/customers/:id/transactions/date", transactionController.GetDateRangeTransactionsByCustomerID)
 
-	e.POST("/transactions", transactionController.CreateTransaction)
+	e.DELETE("/customers/reset", customerController.ResetAllCustomerData)
+
+	// Generator用
+	e.GET("/customers/limit/:num", customerController.GetLimitedCustomers)
+	e.POST("/customers/multi", customerController.CreateMultiCustomers)
+
 	e.POST("/transactions/multi", transactionController.CreateMultiTransactions)
+
+	// 尚未啟用
+	e.DELETE("/customers/:id", customerController.DeleteCustomer)
+
+	e.POST("/transactions", transactionController.CreateTransaction)
 	e.PUT("/transactions/:id", transactionController.UpdateTransaction)
 	e.DELETE("/transactions/:id", transactionController.DeleteTransaction)
 
