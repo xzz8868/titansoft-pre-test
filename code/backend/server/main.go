@@ -13,6 +13,8 @@ import (
 	"github.com/xzz8868/titansoft-pre-test/code/backend/server/models"
 	"github.com/xzz8868/titansoft-pre-test/code/backend/server/repositories"
 	"github.com/xzz8868/titansoft-pre-test/code/backend/server/services"
+
+	"cloud.google.com/go/profiler"
 )
 
 func main() {
