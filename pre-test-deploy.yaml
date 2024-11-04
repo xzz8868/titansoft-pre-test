@@ -52,7 +52,7 @@ spec:
       - name: "pre-test-server"
         image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-server:54f605b"
         volumeMounts:
-        - name: google-credential-key
+        - name: google-credential-key-volume
           mountPath: "/etc/keys"
           readOnly: true
         envFrom:
@@ -92,13 +92,13 @@ spec:
       containers:
       - name: "pre-test-generator"
         image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-generator:54f605b"
+        volumeMounts:
+        - name: google-credential-key-volume
+          mountPath: "/etc/keys"
+          readOnly: true
         envFrom:
         - configMapRef:
             name: "pre-test-generator-config"
-        volumeMounts:
-        - name: google-credential-key
-          mountPath: "/etc/keys"
-          readOnly: true
         resources:
           limits:
             cpu: "1"
