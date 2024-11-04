@@ -1,30 +1,33 @@
 $(document).ready(function() {
     const SERVER_BASE_URL = window._config.SERVER_BASE_URL || 'http://localhost:8080';
 
+    // Extract customer ID from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('id');
     $('#customer-id').val(customerId);
 
-    // Default past month for filtering
+    // Set default "from" date to one month ago for filtering
     let fromDate = new Date();
     fromDate.setMonth(fromDate.getMonth() - 1);
     $('#from-date').val(formatDate(fromDate));
 
+    // Set default "to" date to today
     let toDate = new Date();
     $('#to-date').val(formatDate(toDate));
 
-    // Global variable to store transactions
+    // Global variable to store fetched transactions
     let transactionsData = [];
 
-    // Initial transaction load
+    // Initial load of transactions
     loadTransactions();
 
-    // Form submission for filtering
+    // Form submission handler for date-based filtering
     $('#filter-form').submit(function(e) {
         e.preventDefault();
         filterTransactions();
     });
 
+    // Fetches all transactions for the customer
     function loadTransactions() {
         $.ajax({
             url: `${SERVER_BASE_URL}/customers/${customerId}/transactions`,
@@ -39,11 +42,12 @@ $(document).ready(function() {
         });
     }
 
+    // Filters transactions by date range and requests additional transactions if needed
     function filterTransactions() {
         let from = $('#from-date').val();
         let to = $('#to-date').val();
 
-        // Filter the stored data
+        // Filter the stored data by date
         let filteredData = transactionsData.filter(function(txn) {
             let txnDate = txn.time.substring(0,10);
             return txnDate >= from && txnDate <= to;
@@ -58,7 +62,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ from: from, to: to }),
             success: function(newTransactions) {
-                // Update transactionsData with newTransactions, avoiding duplicates
+                // Update transactionsData with new transactions, avoiding duplicates
                 newTransactions.forEach(function(newTxn) {
                     let exists = transactionsData.some(function(txn) {
                         return txn.id === newTxn.id;
@@ -82,6 +86,7 @@ $(document).ready(function() {
         });
     }
 
+    // Displays a list of transactions in the table and calculates totals
     function displayTransactions(transactions) {
         $('#transaction-table-body').empty();
         let totalAmount = 0;
@@ -95,11 +100,12 @@ $(document).ready(function() {
             `);
             totalAmount += txn.amount;
         });
-        // 更新交易總筆數
+        // Update transaction count and total amount in the UI
         $('#transactions-count').text(`交易總筆數：${transactions.length}`);
         $('#transactions-totalAmount').text(`交易總金額：${totalAmount.toFixed(2)}`)
     }    
 
+    // Formats a Date object as YYYY-MM-DD
     function formatDate(date) {
         let month = '' + (date.getMonth() + 1);
         let day = '' + date.getDate();

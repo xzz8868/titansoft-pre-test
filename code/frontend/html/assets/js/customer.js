@@ -4,7 +4,7 @@ $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
     const customerId = urlParams.get('id');
 
-    // 獲取客戶詳細資訊
+    // Fetch customer details and populate form fields
     $.ajax({
         url: `${SERVER_BASE_URL}/customers/${customerId}`,
         method: 'GET',
@@ -19,7 +19,7 @@ $(document).ready(function() {
         }
     });
 
-    // 監聽修改密碼的勾選框
+    // Toggle password fields visibility and requirement based on checkbox
     $('#change-password').change(function() {
         if ($(this).is(':checked')) {
             $('#password-fields').show();
@@ -32,7 +32,7 @@ $(document).ready(function() {
         }
     });
 
-    // 提交修改
+    // Handle form submission for updating customer details
     $('#customer-form').submit(function(e) {
         e.preventDefault();
 
@@ -42,19 +42,19 @@ $(document).ready(function() {
             gender: $('#gender').val()
         };
 
-        // 更新基本資料
+        // Send update request for customer details
         $.ajax({
             url: `${SERVER_BASE_URL}/customers/${customerId}`,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(updatedCustomer),
             success: function() {
-                // 如果勾選了修改密碼，發送密碼更新請求
+                // If password change is requested, validate and send password update request
                 if ($('#change-password').is(':checked')) {
                     const newPassword = $('#new-password').val();
                     const confirmPassword = $('#confirm-password').val();
 
-                    // 密碼驗證
+                    // Password validation
                     if (newPassword.length < 8) {
                         alert('密碼至少需要8個字元');
                         return;
@@ -70,6 +70,7 @@ $(document).ready(function() {
                         confirm_password: confirmPassword
                     };
 
+                    // Send update request for customer password
                     $.ajax({
                         url: `${SERVER_BASE_URL}/customers/password/${customerId}`,
                         method: 'PUT',

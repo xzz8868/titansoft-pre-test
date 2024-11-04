@@ -1,15 +1,14 @@
 $(document).ready(function() {
-    // 獲取 API 基礎 URL
     const SERVER_BASE_URL = window._config.SERVER_BASE_URL || 'http://localhost:8080';
 
-    // 性別對照表
+    // Gender display mapping
     const genderMap = {
         'male': '男性',
         'female': '女性',
         'other': '其他'
     };
 
-    // 從後端獲取客戶列表
+    // Fetch customer list from backend
     $.ajax({
         url: `${SERVER_BASE_URL}/customers`,
         method: 'GET',
@@ -17,7 +16,7 @@ $(document).ready(function() {
             customers.forEach(function(customer) {
                 let totalAmount = customer.total_transaction_amount || 0;
 
-                // 將客戶資料插入表格
+                // Insert customer data into table
                 $('#customer-table-body').append(
                     `<tr>
                         <td>${customer.name}</td>
@@ -31,25 +30,26 @@ $(document).ready(function() {
                     </tr>`
                 );
             });
-            // 更新客戶總數
+            // Update total customer count
             $('#customer-count').text('客戶總數：' + customers.length);
         },
         error: function(error) {
-            console.error('獲取客户列表失敗:', error);
+            console.error('Failed to fetch customer list:', error);
         }
     });
 
+    // Handle reset button click
     $('#reset_button').click(function() {
         if (confirm('確定要清除所有資料嗎？')) {
             $.ajax({
                 url: `${SERVER_BASE_URL}/customers/reset`,
                 method: 'DELETE',
                 success: function() {
-                    alert('資料清除成功！');
+                    alert('Data reset successful!');
                     window.location.href = 'index.html';
                 },
                 error: function() {
-                    alert('資料清除失敗！');
+                    alert('Data reset failed!');
                 }
             });
         }
