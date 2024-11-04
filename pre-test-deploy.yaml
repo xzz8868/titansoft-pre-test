@@ -17,6 +17,7 @@ data:
   DB_PORT: "3306"
   DB_NAME: "pretest"
   PORT: "8080"
+  GOOGLE_APPLICATION_CREDENTIALS: "/etc/keys/key.json"
 ---
 apiVersion: "v1"
 kind: "ConfigMap"
@@ -28,6 +29,7 @@ metadata:
 data:
   GENERATOR_SERVER_PORT: "8080"
   BACKEND_SERVER_ENDPOINT: "http://pre-test-server-service:8080"
+  GOOGLE_APPLICATION_CREDENTIALS: "/etc/keys/key.json"
 ---
 apiVersion: "apps/v1"
 kind: "Deployment"
@@ -49,6 +51,10 @@ spec:
       containers:
       - name: "pre-test-server"
         image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-server:54f605b"
+        volumeMounts:
+        - name: google-credential-key
+          mountPath: "/etc/keys"
+          readOnly: true
         envFrom:
         - configMapRef:
             name: "pre-test-server-config"
@@ -61,6 +67,10 @@ spec:
           requests:
             cpu: "250m"
             memory: "128Mi"
+        volumes:
+      - name: google-credential-key-volume
+        secret:
+          secretName: google-credential-key
 ---
 apiVersion: "apps/v1"
 kind: "Deployment"
@@ -85,8 +95,10 @@ spec:
         envFrom:
         - configMapRef:
             name: "pre-test-generator-config"
-        - secretRef:
-            name: "pre-test-generator-secret"
+        volumeMounts:
+        - name: google-credential-key
+          mountPath: "/etc/keys"
+          readOnly: true
         resources:
           limits:
             cpu: "1"
@@ -94,6 +106,10 @@ spec:
           requests:
             cpu: "250m"
             memory: "128Mi"
+      volumes:
+      - name: google-credential-key-volume
+        secret:
+          secretName: google-credential-key
 ---
 apiVersion: "apps/v1"
 kind: "Deployment"
