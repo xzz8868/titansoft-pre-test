@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// Config holds the application configuration values.
 type Config struct {
 	DBUser     string
 	DBPassword string
@@ -15,6 +16,8 @@ type Config struct {
 	Salt       string
 }
 
+// LoadConfig initializes the configuration with environment variables,
+// or defaults if the variables are not set.
 func LoadConfig() (*Config, error) {
 	config := &Config{
 		DBUser:     getEnv("DB_USER", "test"),
@@ -29,11 +32,14 @@ func LoadConfig() (*Config, error) {
 	return config, nil
 }
 
+// GetDSN constructs the Data Source Name (DSN) for database connection.
 func (c *Config) GetDSN() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName)
 }
 
+// getEnv retrieves the value of an environment variable or returns
+// a default value if the variable is not set.
 func getEnv(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value

@@ -4,11 +4,34 @@
     <meta charset="UTF-8">
     <title>交易紀錄</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        #transactions-count {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #c8c6c5;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        #transactions-totalAmount {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #c8c6c5;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
+    <div id="transactions-count">交易總筆數：0</div>
+    <div id="transactions-totalAmount">交易總金額：0</div>
     <div class="container mt-5">
         <h1 class="text-center">交易紀錄</h1>
         <form id="filter-form" class="form-inline mb-3">
+            <a href="index.html" class="btn btn-secondary mb-2">返回列表</a>
             <input type="hidden" id="customer-id">
             <div class="form-group mx-sm-3 mb-2">
                 <label for="from-date" class="sr-only">開始日期</label>
@@ -32,7 +55,6 @@
                 <!-- 交易資料將通過 JavaScript 動態插入 -->
             </tbody>
         </table>
-        <a href="index.html" class="btn btn-secondary">返回列表</a>
     </div>
 
     <!-- 引入必要的腳本 -->

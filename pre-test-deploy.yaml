@@ -37,7 +37,7 @@ metadata:
   labels:
     app: "pre-test-server"
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: "pre-test-server"
@@ -56,11 +56,11 @@ spec:
             name: "pre-test-server-secret"
         resources:
           limits:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: "2"
+            memory: "2Gi"
           requests:
             cpu: "250m"
-            memory: "128Mi"
+            memory: "256Mi"
 ---
 apiVersion: "apps/v1"
 kind: "Deployment"
@@ -90,7 +90,7 @@ spec:
             cpu: "1"
             memory: "1Gi"
           requests:
-            cpu: "250m"
+            cpu: "125m"
             memory: "128Mi"
 ---
 apiVersion: "apps/v1"
@@ -101,7 +101,7 @@ metadata:
   labels:
     app: "pre-test-web-server"
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: "pre-test-web-server"
@@ -115,11 +115,11 @@ spec:
         image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-web-server:91ce1b1"
         resources:
           limits:
-            cpu: "0.5"
-            memory: "256Mi"
+            cpu: "1"
+            memory: "1Gi"
           requests:
             cpu: "250m"
-            memory: "128Mi"
+            memory: "256Mi"
 
 ---
 apiVersion: "v1"

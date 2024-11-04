@@ -4,13 +4,12 @@ import (
 	"sort"
 
 	"github.com/google/uuid"
-
 	"github.com/xzz8868/titansoft-pre-test/code/backend/server/models"
 	"github.com/xzz8868/titansoft-pre-test/code/backend/server/repositories"
 )
 
 type TransactionService interface {
-	GetAllTransactionByCustomerID(id uuid.UUID) ([]*models.TransactionDTO, error)
+	GetTransactionsByCustomerID(id uuid.UUID) ([]*models.TransactionDTO, error)
 	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.TransactionDTO, error)
 	CreateTransaction(transaction *models.Transaction) error
 	CreateMultiTransactions(transactions []*models.TransactionDTO) error
@@ -22,12 +21,14 @@ type transactionService struct {
 	repo repositories.TransactionRepository
 }
 
+// Constructor for creating a new TransactionService instance
 func NewTransactionService(repo repositories.TransactionRepository) TransactionService {
 	return &transactionService{repo}
 }
 
-func (s *transactionService) GetAllTransactionByCustomerID(customerID uuid.UUID) ([]*models.TransactionDTO, error) {
-	transactions, err := s.repo.GetAllTransactionsByCustomerID(customerID)
+// Retrieves all transactions for a given customer, sorts them by time, and maps to DTOs
+func (s *transactionService) GetTransactionsByCustomerID(customerID uuid.UUID) ([]*models.TransactionDTO, error) {
+	transactions, err := s.repo.GetTransactionsByCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}
@@ -36,6 +37,7 @@ func (s *transactionService) GetAllTransactionByCustomerID(customerID uuid.UUID)
 	return mapTransactionsToDTOs(transactions), nil
 }
 
+// Retrieves transactions within a date range for a customer, sorts them by time, and maps to DTOs
 func (s *transactionService) GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.TransactionDTO, error) {
 	transactions, err := s.repo.GetDateRangeTransactionsByCustomerID(customerID, from, to)
 	if err != nil {
@@ -68,10 +70,12 @@ func mapTransactionsToDTOs(transactions []*models.Transaction) []*models.Transac
 	return transactionDTOs
 }
 
+// Creates a new transaction record in the repository
 func (s *transactionService) CreateTransaction(transaction *models.Transaction) error {
 	return s.repo.Create(transaction)
 }
 
+// Creates multiple transactions by mapping DTOs to ORM models and saving them in the repository
 func (s *transactionService) CreateMultiTransactions(transactions []*models.TransactionDTO) error {
 	var transactionORMs []*models.Transaction
 	for _, dto := range transactions {
@@ -91,10 +95,12 @@ func (s *transactionService) CreateMultiTransactions(transactions []*models.Tran
 	return s.repo.CreateMultiTransactions(transactionORMs)
 }
 
+// Updates an existing transaction record in the repository
 func (s *transactionService) UpdateTransaction(transaction *models.Transaction) error {
 	return s.repo.Update(transaction)
 }
 
+// Deletes a transaction by its ID in the repository
 func (s *transactionService) DeleteTransaction(id uuid.UUID) error {
 	return s.repo.Delete(id)
 }

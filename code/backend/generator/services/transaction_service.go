@@ -39,6 +39,10 @@ func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, n
 		return fmt.Errorf("failed to retrieve customer IDs: %w", err)
 	}
 
+	if len(customerIDs) == 0 {
+		return fmt.Errorf("no customer data")
+	}
+
 	// Step 2: Generate transactions
 	transactions := ts.generateTransactions(numTransactions, customerIDs)
 
@@ -69,11 +73,13 @@ func (ts *transactionService) getCustomerIDs(ctx context.Context, numCustomers i
 		return nil, fmt.Errorf("backend server responded with status: %d", resp.StatusCode)
 	}
 
+	// Decode response to retrieve customer list
 	var customers []models.Customer
 	if err := json.NewDecoder(resp.Body).Decode(&customers); err != nil {
 		return nil, err
 	}
 
+	// Extract customer IDs from the retrieved customer data
 	customerIDs := make([]uuid.UUID, len(customers))
 	for i, customer := range customers {
 		customerIDs[i] = customer.ID
@@ -89,6 +95,7 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 	var wg sync.WaitGroup
 	wg.Add(numTransactions)
 
+	// Generate each transaction in a separate goroutine
 	for i := 0; i < numTransactions; i++ {
 		go func(i int) {
 			defer wg.Done()
@@ -112,12 +119,13 @@ func (ts *transactionService) sendTransactions(ctx context.Context, transactions
 		return err
 	}
 
+	// Create POST request with transaction data
 	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		return err
 	}
 	req.Body = http.NoBody
-	req.Body = nopCloser{bytes.NewReader(data)}
+	req.Body = nopCloser{bytes.NewReader(data)} // Use custom io.ReadCloser with transaction data
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -144,7 +152,7 @@ func randomTimeWithinMonths(months int) time.Time {
 	return time.Unix(sec, 0)
 }
 
-// Helper to create an io.ReadCloser from bytes.Reader
+// nopCloser is a helper to create an io.ReadCloser from bytes.Reader
 type nopCloser struct {
 	*bytes.Reader
 }

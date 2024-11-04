@@ -35,6 +35,7 @@ func NewCustomerController(cfg *config.Config, customerService services.Customer
 
 // GenerateAndSendCustomerData handles generating customer data and sending it to the backend
 func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error {
+	// Parse the 'num' query parameter and validate it
 	numStr := c.QueryParam("num")
 	num, err := strconv.Atoi(numStr)
 	if err != nil || num <= 0 {
@@ -47,6 +48,7 @@ func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error 
 	var generateDuration time.Duration
 	var sendDuration time.Duration
 
+	// Loop to attempt data generation and sending until successful or retry limit reached
 	for {
 		generateStartTime := time.Now()
 		log.Println("Starting generation of customer data")
@@ -73,9 +75,11 @@ func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error 
 		// Check if there is a decrease in failures or if failures are constant
 		if failedCount > 0 {
 			if failedCount == num {
+				// Increment counter if failure count remains constant
 				sameFailureCounter++
 				log.Printf("Failure count remained constant at %d, retry %d", failedCount, sameFailureCounter)
 				if sameFailureCounter >= 5 {
+					// Stop retries after 5 consecutive constant failures
 					log.Println("Persistent failures reached, stopping retries")
 					return c.JSON(http.StatusInternalServerError, map[string]string{
 						"error":  "Persistent failures, stopping retries",
@@ -83,16 +87,20 @@ func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error 
 					})
 				}
 			} else {
-				sameFailureCounter = 0 // reset if the failure count decreases
+				// Reset counter if failure count decreases
+				sameFailureCounter = 0
 				log.Println("Failure count decreased, resetting sameFailureCounter")
 			}
-			num = failedCount // Set the number of requests for the next iteration to the number of failures
+			// Set num to failedCount for the next iteration
+			num = failedCount
 		} else {
+			// Break loop if there are no failures
 			log.Println("No failures, breaking loop")
-			break // If no failures, break the loop
+			break
 		}
 	}
 
+	// Return success response with generation and sending durations
 	return c.JSON(http.StatusOK, map[string]string{
 		"status":          "Customer data generated and sent to backend server",
 		"generation_time": fmt.Sprintf("%v", generateDuration),

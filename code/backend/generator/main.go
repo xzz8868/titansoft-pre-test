@@ -12,29 +12,30 @@ import (
 )
 
 func main() {
+	// Load application configuration
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
+	// Initialize Echo instance for handling HTTP requests
 	e := echo.New()
 
-	// 添加CORS中間件
+	// Add CORS middleware for cross-origin requests
 	e.Use(middleware.CORS())
 
-	// Instantiate the service via its factory function
+	// Instantiate services
 	customerService := services.NewCustomerService(cfg)
-	// Instantiate the transaction service via its factory function
 	transactionService := services.NewTransactionService(cfg)
 
-	// Instantiate the transaction controller via its factory function
+	// Instantiate controllers with dependencies injected
 	transactionController := controllers.NewTransactionController(transactionService)
-	// Instantiate the controller via its factory function, injecting the service interface
 	customerController := controllers.NewCustomerController(cfg, customerService)
 
-	// Define the route for creating transactions
+	// Define routes for API endpoints
 	e.POST("/generate/customer", customerController.GenerateAndSendCustomerData)
 	e.POST("/generate/transactions", transactionController.CreateTransactions)
 
+	// Start the server on the configured port
 	e.Logger.Fatal(e.Start(":" + cfg.GeneratorServerPort))
 }
