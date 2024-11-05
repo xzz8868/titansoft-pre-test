@@ -81,8 +81,8 @@ func (cc *customerController) CreateMultiCustomers(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	if len(customers) > 2000 {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Customers length over 2000"})
+	if len(customers) > 1000 {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Customers length over 1000"})
 	}
 
 	successCount, failCount, err := cc.customerService.CreateMultiCustomers(customers)

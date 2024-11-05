@@ -9,9 +9,9 @@ $(document).ready(function () {
         const transactionsNum = $('#transactions_num').val();
         const customersNum = $('#customers_num').val();
 
-        // Verify if the input value exceeds 10000
-        if (num > 10000) {
-            alert('單次最多只能產生10000筆資料');
+        // Verify if the input value exceeds 5000
+        if (transactionsNum > 5000) {
+            alert('單次最多只能產生5000筆資料');
             return;
         }
 

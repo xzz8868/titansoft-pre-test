@@ -8,9 +8,9 @@ $(document).ready(function() {
         // Get the input value for the number of customers to generate
         const num = $('#num').val();
 
-        // Verify if the input value exceeds 2000
-        if (num > 2000) {
-            alert('單次最多只能產生2000筆資料');
+        // Verify if the input value exceeds 1000
+        if (num > 1000) {
+            alert('單次最多只能產生1000筆資料');
             return;
         }
 

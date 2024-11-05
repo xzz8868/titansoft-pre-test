@@ -10,12 +10,12 @@
         <h1 class="text-center">交易資料產生器</h1>
         <form id="generate-transactions-form">
             <div class="form-group">
-                <label for="transactions_num">交易資料產生筆數(單次最多10000)</label>
-                <input type="number" class="form-control" id="transactions_num" required>
+                <label for="transactions_num">交易資料產生筆數(單次最多5000)</label>
+                <input type="number" class="form-control" id="transactions_num" required min="1" max="5000">
             </div>
             <div class="form-group">
                 <label for="customers_num">交易資料隨機產生於幾個客戶</label>
-                <input type="number" class="form-control" id="customers_num" required>
+                <input type="number" class="form-control" id="customers_num" required min="1">
             </div>
             <button type="submit" class="btn btn-primary">產生資料</button>
             <a href="index.html" class="btn btn-secondary">返回列表</a>

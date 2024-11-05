@@ -69,8 +69,8 @@ func (tc *transactionController) CreateMultiTransactions(ctx echo.Context) error
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
-	if len(transactions) > 10000 {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "transactions length over 10000"})
+	if len(transactions) > 5000 {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "transactions length over 5000"})
 	}
 
 	if err := tc.transactionService.CreateMultiTransactions(transactions); err != nil {

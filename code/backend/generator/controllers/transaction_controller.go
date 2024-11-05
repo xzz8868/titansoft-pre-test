@@ -34,7 +34,7 @@ func (tc *transactionController) CreateTransactions(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of transactions"})
 	}
 
-	if numTransactions > 10000 {
+	if numTransactions > 5000 {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Transactions num over 10000"})
 	}
 

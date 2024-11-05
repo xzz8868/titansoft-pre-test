@@ -38,7 +38,7 @@ func (cc *customerController) GenerateAndSendCustomerData(ctx echo.Context) erro
 		log.Printf("Error converting num parameter: %v", err)
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of records"})
 	}
-	if num > 2000 {
+	if num > 1000 {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "num over 2000"})
 	}
 
