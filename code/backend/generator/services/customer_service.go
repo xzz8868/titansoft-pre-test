@@ -2,7 +2,6 @@ package services
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -12,6 +11,8 @@ import (
 	"github.com/xzz8868/titansoft-pre-test/code/backend/generator/config"
 	"github.com/xzz8868/titansoft-pre-test/code/backend/generator/models"
 )
+
+const str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 // CustomerService defines the interface for customer-related operations
 type CustomerService interface {
@@ -99,26 +100,25 @@ func (cs *customerService) CreateMultiCustomersAPICall(customers []models.Custom
 	return successCount, failCount, nil
 }
 
-// generateRandomName generates a random 8-character hexadecimal string as a name
+// generateRandomName generates a random 8-character string as a name
 func (cs *customerService) generateRandomName() string {
-	bytes := make([]byte, 4)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		log.Printf("Error generating random name: %v", err)
-		panic(err)
-	}
-	return hex.EncodeToString(bytes)
+	return generateRandomString(8)
 }
 
-// generateRandomPassword generates a random 16-character hexadecimal password
+// generateRandomPassword generates a random 16-character password
 func (cs *customerService) generateRandomPassword() string {
-	bytes := make([]byte, 8)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		log.Printf("Error generating random password: %v", err)
-		panic(err)
+	return generateRandomString(16)
+}
+
+// generateRandomString generates random string
+func generateRandomString(n int) string {
+	strLen := len(str)
+	result := make([]byte, n)
+	bytes := []byte(str)
+	for i := 0; i < n; i++ {
+		result[i] = bytes[rand.Intn(strLen)]
 	}
-	return hex.EncodeToString(bytes)
+	return string(result)
 }
 
 // generateRandomEmail creates an email address by combining a name with a random domain
