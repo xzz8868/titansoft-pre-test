@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
       - name: "pre-test-server"
-        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-server:11e2426"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-server:b2c299d"
         envFrom:
         - configMapRef:
             name: "pre-test-server-config"
@@ -59,8 +59,8 @@ spec:
             cpu: "2"
             memory: "2Gi"
           requests:
-            cpu: "250m"
-            memory: "256Mi"
+            cpu: "0.5"
+            memory: "512Mi"
 ---
 apiVersion: "apps/v1"
 kind: "Deployment"
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
       - name: "pre-test-generator"
-        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-generator:11e2426"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-generator:b2c299d"
         envFrom:
         - configMapRef:
             name: "pre-test-generator-config"
@@ -90,8 +90,8 @@ spec:
             cpu: "1"
             memory: "1Gi"
           requests:
-            cpu: "125m"
-            memory: "128Mi"
+            cpu: "250m"
+            memory: "256Mi"
 ---
 apiVersion: "apps/v1"
 kind: "Deployment"
@@ -101,7 +101,7 @@ metadata:
   labels:
     app: "pre-test-web-server"
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: "pre-test-web-server"
@@ -112,7 +112,7 @@ spec:
     spec:
       containers:
       - name: "pre-test-web-server"
-        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-web-server:11e2426"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-web-server:b2c299d"
         resources:
           limits:
             cpu: "0.5"
