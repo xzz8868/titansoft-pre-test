@@ -105,6 +105,7 @@ func (cs *customerService) generateRandomName() string {
 	return generateRandomString(8)
 }
 
+
 // generateRandomPassword generates a random 16-character password
 func (cs *customerService) generateRandomPassword() string {
 	return generateRandomString(16)

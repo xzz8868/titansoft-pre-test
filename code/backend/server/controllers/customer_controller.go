@@ -166,4 +166,3 @@ func (cc *customerController) ResetAllCustomerData(ctx echo.Context) error {
 // 	}
 // 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Customer deleted successfully"})
 // }
-

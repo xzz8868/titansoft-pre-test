@@ -70,7 +70,6 @@ func (cs *transactionService) mapTransactionsToDTOs(transactions []*models.Trans
 	return transactionDTOs
 }
 
-
 // Creates multiple transactions by mapping DTOs to ORM models and saving them in the repository
 func (cs *transactionService) CreateMultiTransactions(transactions []*models.TransactionDTO) error {
 	var transactionORMs []*models.Transaction
