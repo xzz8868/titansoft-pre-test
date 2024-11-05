@@ -53,52 +53,52 @@ func (cs *customerService) GenerateCustomerData(num int) ([]models.CustomerDTO, 
 
 // CreateMultiCustomersAPICall sends a batch of customer data to the backend API
 func (cs *customerService) CreateMultiCustomersAPICall(customers []models.CustomerDTO) (int, int, error) {
-	client := &http.Client{}
-	successCount := 0
-	failCount := 0
+    successCount := 0
+    failCount := 0
 
-	// Serialize customer data to JSON
-	customersJson, err := json.Marshal(customers)
-	if err != nil {
-		log.Printf("JSON marshalling error: %v", err)
-		return successCount, failCount, err
-	}
+    // Serialize customer data to JSON
+    customersJSON, err := json.Marshal(customers)
+    if err != nil {
+        log.Printf("JSON marshalling error: %v", err)
+        return successCount, failCount, err
+    }
 
-	// Construct the API request
-	url := fmt.Sprintf("%s/customers/multi", cs.cfg.BackendServerEndpoint)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(customersJson))
-	if err != nil {
-		log.Printf("Request creation error: %v", err)
-		return successCount, failCount, err
-	}
+    // Construct the API request
+    url := fmt.Sprintf("%s/customers/multi", cs.cfg.BackendServerEndpoint)
+    req, err := http.NewRequest("POST", url, bytes.NewBuffer(customersJSON))
+    if err != nil {
+        log.Printf("Request creation error: %v", err)
+        return successCount, failCount, err
+    }
+    req.Header.Set("Content-Type", "application/json")
 
-	req.Header.Set("Content-Type", "application/json")
+    // Execute the HTTP request
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        log.Printf("HTTP request error: %v", err)
+        return successCount, failCount, err
+    }
+    defer resp.Body.Close()
 
-	// Execute the HTTP request
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("HTTP request error: %v", err)
-		return successCount, failCount, err
-	}
-	defer resp.Body.Close()
+    // Handle response based on status code
+    if resp.StatusCode == http.StatusCreated {
+        var result map[string]int
+        if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+            log.Printf("JSON decoding error: %v", err)
+            return successCount, failCount, err
+        }
+        successCount = result["successCount"]
+        failCount = result["failCount"]
+    } else {
+        log.Printf("HTTP response status error: %d", resp.StatusCode)
+        return successCount, failCount, fmt.Errorf("failed to create customers with status code: %d", resp.StatusCode)
+    }
 
-	// Handle response based on status code
-	if resp.StatusCode == http.StatusCreated {
-		var result map[string]int
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			log.Printf("JSON decoding error: %v", err)
-			return successCount, failCount, err
-		}
-		successCount = result["successCount"]
-		failCount = result["failCount"]
-	} else {
-		log.Printf("HTTP response status error: %d", resp.StatusCode)
-		return successCount, failCount, fmt.Errorf("failed to create customers with status code: %d", resp.StatusCode)
-	}
-
-	log.Printf("API calls completed with %d successes and %d failures", successCount, failCount)
-	return successCount, failCount, nil
+    log.Printf("API calls completed with %d successes and %d failures", successCount, failCount)
+    return successCount, failCount, nil
 }
+
 
 // generateRandomName generates a random 8-character string as a name
 func (cs *customerService) generateRandomName() string {

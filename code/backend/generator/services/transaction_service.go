@@ -55,12 +55,15 @@ func (ts *transactionService) GenerateAndSendTransactions(numTransactions int, n
 
 // getCustomerIDs retrieves customer IDs from the backend server
 func (ts *transactionService) getCustomerIDs(numCustomers int) ([]uuid.UUID, error) {
+	// Construct the API request
 	url := fmt.Sprintf("%s/customers/limit/%d", ts.cfg.BackendServerEndpoint, numCustomers)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 
+	// Execute the HTTP request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -68,17 +71,18 @@ func (ts *transactionService) getCustomerIDs(numCustomers int) ([]uuid.UUID, err
 	}
 	defer resp.Body.Close()
 
+	// Check HTTP Status Code
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("backend server responded with status: %d", resp.StatusCode)
 	}
 
-	// Decode response to retrieve customer list
+	// Analyze response data
 	var customers []models.CustomerDTO
 	if err := json.NewDecoder(resp.Body).Decode(&customers); err != nil {
 		return nil, err
 	}
 
-	// Extract customer IDs from the retrieved customer data
+	// Extract customer ID
 	customerIDs := make([]uuid.UUID, len(customers))
 	for i, customer := range customers {
 		customerIDs[i] = customer.ID
@@ -112,21 +116,21 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 
 // sendTransactions posts the transactions to the backend server
 func (ts *transactionService) sendTransactions(transactions []models.TransactionDTO) error {
-	url := fmt.Sprintf("%s/transactions/multi", ts.cfg.BackendServerEndpoint)
-	data, err := json.Marshal(transactions)
+	// Serialize customer data to JSON
+	transactionsJSON, err := json.Marshal(transactions)
 	if err != nil {
 		return err
 	}
 
 	// Create POST request with transaction data
-	req, err := http.NewRequest("POST", url, nil)
+	url := fmt.Sprintf("%s/transactions/multi", ts.cfg.BackendServerEndpoint)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(transactionsJSON))
 	if err != nil {
 		return err
 	}
-	req.Body = http.NoBody
-	req.Body = nopCloser{bytes.NewReader(data)} // Use custom io.ReadCloser with transaction data
 	req.Header.Set("Content-Type", "application/json")
 
+	// Execute the HTTP request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -134,6 +138,7 @@ func (ts *transactionService) sendTransactions(transactions []models.Transaction
 	}
 	defer resp.Body.Close()
 
+	// Handle response based on status code
 	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("backend server responded with status: %d", resp.StatusCode)
 	}
