@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/xzz8868/titansoft-pre-test/code/backend/generator/config"
 	"github.com/xzz8868/titansoft-pre-test/code/backend/generator/services"
 
 	"github.com/labstack/echo/v4"
@@ -21,14 +20,12 @@ type CustomerController interface {
 
 // customerController is the concrete implementation of CustomerController
 type customerController struct {
-	cfg             *config.Config
 	customerService services.CustomerService
 }
 
 // NewCustomerController is the factory function that returns a CustomerController interface
-func NewCustomerController(cfg *config.Config, customerService services.CustomerService) CustomerController {
+func NewCustomerController(customerService services.CustomerService) CustomerController {
 	return &customerController{
-		cfg:             cfg,
 		customerService: customerService,
 	}
 }

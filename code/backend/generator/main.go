@@ -30,7 +30,7 @@ func main() {
 
 	// Instantiate controllers with dependencies injected
 	transactionController := controllers.NewTransactionController(transactionService)
-	customerController := controllers.NewCustomerController(cfg, customerService)
+	customerController := controllers.NewCustomerController(customerService)
 
 	// Define routes for API endpoints
 	e.POST("/generate/customer", customerController.GenerateAndSendCustomerData)
