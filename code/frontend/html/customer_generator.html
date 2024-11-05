@@ -10,12 +10,18 @@
         <h1 class="text-center">客戶資料產生器</h1>
         <form id="generate-customer-form">
             <div class="form-group">
-                <label for="name">客戶資料產生筆數</label>
-                <input type="text" class="form-control" id="num" required>
+                <label for="num">客戶資料產生筆數（單次最多2000）</label>
+                <input type="number" class="form-control" id="num" required min="1" max="2000">
             </div>
             <button type="submit" class="btn btn-primary">產生資料</button>
             <a href="index.html" class="btn btn-secondary">返回列表</a>
         </form>
+        <!-- 等待動畫 -->
+        <div id="loading-spinner" class="text-center mt-3" style="display: none;">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">資料產生中...</span>
+            </div>
+        </div>
     </div>
 
     <!-- 引入必要的腳本 -->

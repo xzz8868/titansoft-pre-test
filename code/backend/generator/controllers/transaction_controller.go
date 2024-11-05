@@ -34,6 +34,10 @@ func (tc *transactionController) CreateTransactions(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of transactions"})
 	}
 
+	if numTransactions > 10000 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Transactions num over 10000"})
+	}
+
 	// Parse "customers_num" query parameter to integer
 	numCustomersStr := c.QueryParam("customers_num")
 	numCustomers, err := strconv.Atoi(numCustomersStr)

@@ -65,6 +65,10 @@ func (c *CustomerController) CreateMultiCustomers(ctx echo.Context) error {
 	if err := ctx.Bind(&customers); err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
+	
+	if len(customers)>2000{
+		return ctx.JSON(http.StatusBadRequest,  map[string]string{"error": "customers length over 2000"})
+	}
 
 	successCount, failCount, err := c.service.CreateMultiCustomers(customers)
 	if err != nil {
