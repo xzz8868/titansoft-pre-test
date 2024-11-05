@@ -10,7 +10,7 @@ const (
 	Other  Gender = "other"
 )
 
-type Customer struct {
+type CustomerDTO struct {
 	ID       uuid.UUID `json:"id"`
 	Name     string    `json:"name"`
 	Password string    `json:"password"`

@@ -15,8 +15,8 @@ import (
 
 // CustomerService defines the interface for customer-related operations
 type CustomerService interface {
-	GenerateCustomerData(num int) ([]models.Customer, error)
-	CreateMultiCustomersAPICall(customers []models.Customer) (int, int, error)
+	GenerateCustomerData(num int) ([]models.CustomerDTO, error)
+	CreateMultiCustomersAPICall(customers []models.CustomerDTO) (int, int, error)
 }
 
 // customerService is the concrete implementation of CustomerService
@@ -33,12 +33,12 @@ var emailDomains = []string{"@gmail.com", "@yahoo.com.tw", "@outlook.com", "@icl
 	"@aol.com", "@mail.com", "@yandex.com", "@protonmail.com", "@gmx.com"}
 
 // GenerateCustomerData generates a list of random customer data
-func (cs *customerService) GenerateCustomerData(num int) ([]models.Customer, error) {
+func (cs *customerService) GenerateCustomerData(num int) ([]models.CustomerDTO, error) {
 	log.Printf("Generating data for %d customers", num)
-	var customers []models.Customer
+	var customers []models.CustomerDTO
 	for i := 0; i < num; i++ {
 		name := cs.generateRandomName()
-		customer := models.Customer{
+		customer := models.CustomerDTO{
 			Name:     name,
 			Password: cs.generateRandomPassword(),
 			Email:    cs.generateRandomEmail(name),
@@ -51,7 +51,7 @@ func (cs *customerService) GenerateCustomerData(num int) ([]models.Customer, err
 }
 
 // CreateMultiCustomersAPICall sends a batch of customer data to the backend API
-func (cs *customerService) CreateMultiCustomersAPICall(customers []models.Customer) (int, int, error) {
+func (cs *customerService) CreateMultiCustomersAPICall(customers []models.CustomerDTO) (int, int, error) {
 	client := &http.Client{}
 	successCount := 0
 	failCount := 0

@@ -73,7 +73,7 @@ func (ts *transactionService) getCustomerIDs(numCustomers int) ([]uuid.UUID, err
 	}
 
 	// Decode response to retrieve customer list
-	var customers []models.Customer
+	var customers []models.CustomerDTO
 	if err := json.NewDecoder(resp.Body).Decode(&customers); err != nil {
 		return nil, err
 	}
@@ -88,8 +88,8 @@ func (ts *transactionService) getCustomerIDs(numCustomers int) ([]uuid.UUID, err
 }
 
 // generateTransactions creates a list of random transactions
-func (ts *transactionService) generateTransactions(numTransactions int, customerIDs []uuid.UUID) []models.Transaction {
-	transactions := make([]models.Transaction, numTransactions)
+func (ts *transactionService) generateTransactions(numTransactions int, customerIDs []uuid.UUID) []models.TransactionDTO {
+	transactions := make([]models.TransactionDTO, numTransactions)
 	customerCount := len(customerIDs)
 	var wg sync.WaitGroup
 	wg.Add(numTransactions)
@@ -98,7 +98,7 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 	for i := 0; i < numTransactions; i++ {
 		go func(i int) {
 			defer wg.Done()
-			transactions[i] = models.Transaction{
+			transactions[i] = models.TransactionDTO{
 				CustomerID: customerIDs[rand.Intn(customerCount)],
 				Amount:     rand.Float64() * 1000000, // Random amount up to $1000000
 				Time:       ts.randomTimeWithinMonths(18),
@@ -111,7 +111,7 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 }
 
 // sendTransactions posts the transactions to the backend server
-func (ts *transactionService) sendTransactions(transactions []models.Transaction) error {
+func (ts *transactionService) sendTransactions(transactions []models.TransactionDTO) error {
 	url := fmt.Sprintf("%s/transactions/multi", ts.cfg.BackendServerEndpoint)
 	data, err := json.Marshal(transactions)
 	if err != nil {
