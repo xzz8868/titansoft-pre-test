@@ -8,6 +8,12 @@ $(document).ready(function() {
         // Get the input value for the number of customers to generate
         const num = $('#num').val();
 
+        // Verify if the input value exceeds 1000
+        if (num > 1000) {
+            alert('單次最多只能產生1000筆資料');
+            return;
+        }
+
         // Construct URL with query parameters
         const urlWithParams = `${GENERATOR_BASE_URL}/generate/customer?num=${encodeURIComponent(num)}`;
 
@@ -15,6 +21,14 @@ $(document).ready(function() {
         $.ajax({
             url: urlWithParams,
             method: 'POST',
+            beforeSend: function() {
+                // Show waiting animation
+                $('#loading-spinner').show();
+            },
+            complete: function() {
+                // Hide waiting animation
+                $('#loading-spinner').hide();
+            },
             success: function() {
                 alert('資料產生成功'); // Alert on success
                 window.location.href = 'index.html'; // Redirect to index page

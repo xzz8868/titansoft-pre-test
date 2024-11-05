@@ -2,7 +2,6 @@ package services
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,7 +17,7 @@ import (
 
 // TransactionService defines the interface for transaction-related operations
 type TransactionService interface {
-	GenerateAndSendTransactions(ctx context.Context, numTransactions int, numCustomers int) error
+	GenerateAndSendTransactions(numTransactions int, numCustomers int) error
 }
 
 // transactionService is the concrete implementation of TransactionService
@@ -32,9 +31,9 @@ func NewTransactionService(cfg *config.Config) TransactionService {
 }
 
 // GenerateAndSendTransactions generates transaction data and sends it to the backend server
-func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, numTransactions int, numCustomers int) error {
+func (ts *transactionService) GenerateAndSendTransactions(numTransactions int, numCustomers int) error {
 	// Step 1: Retrieve customer IDs
-	customerIDs, err := ts.getCustomerIDs(ctx, numCustomers)
+	customerIDs, err := ts.getCustomerIDs(numCustomers)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve customer IDs: %w", err)
 	}
@@ -47,7 +46,7 @@ func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, n
 	transactions := ts.generateTransactions(numTransactions, customerIDs)
 
 	// Step 3: Send transactions to backend
-	if err := ts.sendTransactions(ctx, transactions); err != nil {
+	if err := ts.sendTransactions(transactions); err != nil {
 		return fmt.Errorf("failed to send transactions: %w", err)
 	}
 
@@ -55,13 +54,16 @@ func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, n
 }
 
 // getCustomerIDs retrieves customer IDs from the backend server
-func (ts *transactionService) getCustomerIDs(ctx context.Context, numCustomers int) ([]uuid.UUID, error) {
+func (ts *transactionService) getCustomerIDs(numCustomers int) ([]uuid.UUID, error) {
+	// Construct the API request
 	url := fmt.Sprintf("%s/customers/limit/%d", ts.cfg.BackendServerEndpoint, numCustomers)
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Content-Type", "application/json")
 
+	// Execute the HTTP request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -69,17 +71,18 @@ func (ts *transactionService) getCustomerIDs(ctx context.Context, numCustomers i
 	}
 	defer resp.Body.Close()
 
+	// Check HTTP Status Code
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("backend server responded with status: %d", resp.StatusCode)
 	}
 
-	// Decode response to retrieve customer list
-	var customers []models.Customer
+	// Analyze response data
+	var customers []models.CustomerDTO
 	if err := json.NewDecoder(resp.Body).Decode(&customers); err != nil {
 		return nil, err
 	}
 
-	// Extract customer IDs from the retrieved customer data
+	// Extract customer ID
 	customerIDs := make([]uuid.UUID, len(customers))
 	for i, customer := range customers {
 		customerIDs[i] = customer.ID
@@ -89,8 +92,8 @@ func (ts *transactionService) getCustomerIDs(ctx context.Context, numCustomers i
 }
 
 // generateTransactions creates a list of random transactions
-func (ts *transactionService) generateTransactions(numTransactions int, customerIDs []uuid.UUID) []models.Transaction {
-	transactions := make([]models.Transaction, numTransactions)
+func (ts *transactionService) generateTransactions(numTransactions int, customerIDs []uuid.UUID) []models.TransactionDTO {
+	transactions := make([]models.TransactionDTO, numTransactions)
 	customerCount := len(customerIDs)
 	var wg sync.WaitGroup
 	wg.Add(numTransactions)
@@ -99,10 +102,10 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 	for i := 0; i < numTransactions; i++ {
 		go func(i int) {
 			defer wg.Done()
-			transactions[i] = models.Transaction{
+			transactions[i] = models.TransactionDTO{
 				CustomerID: customerIDs[rand.Intn(customerCount)],
 				Amount:     rand.Float64() * 1000000, // Random amount up to $1000000
-				Time:       randomTimeWithinMonths(18),
+				Time:       ts.randomTimeWithinMonths(18),
 			}
 		}(i)
 	}
@@ -112,22 +115,22 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 }
 
 // sendTransactions posts the transactions to the backend server
-func (ts *transactionService) sendTransactions(ctx context.Context, transactions []models.Transaction) error {
-	url := fmt.Sprintf("%s/transactions/multi", ts.cfg.BackendServerEndpoint)
-	data, err := json.Marshal(transactions)
+func (ts *transactionService) sendTransactions(transactions []models.TransactionDTO) error {
+	// Serialize customer data to JSON
+	transactionsJSON, err := json.Marshal(transactions)
 	if err != nil {
 		return err
 	}
 
 	// Create POST request with transaction data
-	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
+	url := fmt.Sprintf("%s/transactions/multi", ts.cfg.BackendServerEndpoint)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(transactionsJSON))
 	if err != nil {
 		return err
 	}
-	req.Body = http.NoBody
-	req.Body = nopCloser{bytes.NewReader(data)} // Use custom io.ReadCloser with transaction data
 	req.Header.Set("Content-Type", "application/json")
 
+	// Execute the HTTP request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -135,6 +138,7 @@ func (ts *transactionService) sendTransactions(ctx context.Context, transactions
 	}
 	defer resp.Body.Close()
 
+	// Handle response based on status code
 	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("backend server responded with status: %d", resp.StatusCode)
 	}
@@ -144,7 +148,7 @@ func (ts *transactionService) sendTransactions(ctx context.Context, transactions
 }
 
 // randomTimeWithinMonths generates a random time within the past specified months
-func randomTimeWithinMonths(months int) time.Time {
+func (ts *transactionService) randomTimeWithinMonths(months int) time.Time {
 	now := time.Now()
 	past := now.AddDate(0, -months, 0)
 	delta := now.Unix() - past.Unix()

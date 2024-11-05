@@ -10,7 +10,7 @@ import (
 
 // TransactionController defines the interface for transaction-related handlers
 type TransactionController interface {
-	CreateTransactions(c echo.Context) error
+	CreateTransactions(ctx echo.Context) error
 }
 
 // transactionController is the concrete implementation of TransactionController
@@ -26,27 +26,30 @@ func NewTransactionController(transactionService services.TransactionService) Tr
 }
 
 // CreateTransactions handles the creation of transactions
-func (tc *transactionController) CreateTransactions(c echo.Context) error {
+func (tc *transactionController) CreateTransactions(ctx echo.Context) error {
 	// Parse "transactions_num" query parameter to integer
-	numTransactionsStr := c.QueryParam("transactions_num")
+	numTransactionsStr := ctx.QueryParam("transactions_num")
 	numTransactions, err := strconv.Atoi(numTransactionsStr)
 	if err != nil || numTransactions <= 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of transactions"})
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of transactions"})
+	}
+
+	if numTransactions > 5000 {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Transactions num over 10000"})
 	}
 
 	// Parse "customers_num" query parameter to integer
-	numCustomersStr := c.QueryParam("customers_num")
+	numCustomersStr := ctx.QueryParam("customers_num")
 	numCustomers, err := strconv.Atoi(numCustomersStr)
 	if err != nil || numCustomers <= 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of customers"})
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of customers"})
 	}
 
 	// Generate and send transactions using the service layer
-	ctx := c.Request().Context()
-	if err := tc.transactionService.GenerateAndSendTransactions(ctx, numTransactions, numCustomers); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	if err := tc.transactionService.GenerateAndSendTransactions(numTransactions, numCustomers); err != nil {
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	// Return success response
-	return c.JSON(http.StatusOK, map[string]string{"status": "Transactions generated and sent successfully"})
+	return ctx.JSON(http.StatusOK, map[string]string{"status": "Transactions generated and sent successfully"})
 }

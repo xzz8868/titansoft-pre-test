@@ -11,10 +11,10 @@ import (
 type TransactionService interface {
 	GetTransactionsByCustomerID(id uuid.UUID) ([]*models.TransactionDTO, error)
 	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.TransactionDTO, error)
-	CreateTransaction(transaction *models.Transaction) error
 	CreateMultiTransactions(transactions []*models.TransactionDTO) error
-	UpdateTransaction(transaction *models.Transaction) error
-	DeleteTransaction(id uuid.UUID) error
+	// CreateTransaction(transaction *models.Transaction) error
+	// UpdateTransaction(transaction *models.Transaction) error
+	// DeleteTransaction(id uuid.UUID) error
 }
 
 type transactionService struct {
@@ -27,36 +27,36 @@ func NewTransactionService(repo repositories.TransactionRepository) TransactionS
 }
 
 // Retrieves all transactions for a given customer, sorts them by time, and maps to DTOs
-func (s *transactionService) GetTransactionsByCustomerID(customerID uuid.UUID) ([]*models.TransactionDTO, error) {
-	transactions, err := s.repo.GetTransactionsByCustomerID(customerID)
+func (cs *transactionService) GetTransactionsByCustomerID(customerID uuid.UUID) ([]*models.TransactionDTO, error) {
+	transactions, err := cs.repo.GetTransactionsByCustomerID(customerID)
 	if err != nil {
 		return nil, err
 	}
 
-	sortTransactionsByTime(transactions)
-	return mapTransactionsToDTOs(transactions), nil
+	cs.sortTransactionsByTime(transactions)
+	return cs.mapTransactionsToDTOs(transactions), nil
 }
 
 // Retrieves transactions within a date range for a customer, sorts them by time, and maps to DTOs
-func (s *transactionService) GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.TransactionDTO, error) {
-	transactions, err := s.repo.GetDateRangeTransactionsByCustomerID(customerID, from, to)
+func (cs *transactionService) GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.TransactionDTO, error) {
+	transactions, err := cs.repo.GetDateRangeTransactionsByCustomerID(customerID, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	sortTransactionsByTime(transactions)
-	return mapTransactionsToDTOs(transactions), nil
+	cs.sortTransactionsByTime(transactions)
+	return cs.mapTransactionsToDTOs(transactions), nil
 }
 
 // Helper function to sort transactions by time in ascending order
-func sortTransactionsByTime(transactions []*models.Transaction) {
+func (cs *transactionService) sortTransactionsByTime(transactions []*models.Transaction) {
 	sort.Slice(transactions, func(i, j int) bool {
 		return transactions[i].Time.Before(transactions[j].Time)
 	})
 }
 
 // Helper function to map transaction models to TransactionDTOs and assign sequences
-func mapTransactionsToDTOs(transactions []*models.Transaction) []*models.TransactionDTO {
+func (cs *transactionService) mapTransactionsToDTOs(transactions []*models.Transaction) []*models.TransactionDTO {
 	transactionDTOs := make([]*models.TransactionDTO, len(transactions))
 	for i, txn := range transactions {
 		transactionDTOs[i] = &models.TransactionDTO{
@@ -70,16 +70,11 @@ func mapTransactionsToDTOs(transactions []*models.Transaction) []*models.Transac
 	return transactionDTOs
 }
 
-// Creates a new transaction record in the repository
-func (s *transactionService) CreateTransaction(transaction *models.Transaction) error {
-	return s.repo.Create(transaction)
-}
-
 // Creates multiple transactions by mapping DTOs to ORM models and saving them in the repository
-func (s *transactionService) CreateMultiTransactions(transactions []*models.TransactionDTO) error {
+func (cs *transactionService) CreateMultiTransactions(transactions []*models.TransactionDTO) error {
 	var transactionORMs []*models.Transaction
 	for _, dto := range transactions {
-
+		
 		// Map TransactionDTO to Transaction ORM model
 		transactionORM := &models.Transaction{
 			ID:         uuid.New(),
@@ -87,20 +82,25 @@ func (s *transactionService) CreateMultiTransactions(transactions []*models.Tran
 			Amount:     dto.Amount,
 			Time:       dto.Time,
 		}
-
+		
 		transactionORMs = append(transactionORMs, transactionORM)
 	}
-
+	
 	// Call the Repository layer to save transactions
-	return s.repo.CreateMultiTransactions(transactionORMs)
+	return cs.repo.CreateMultiTransactions(transactionORMs)
 }
+
+// Creates a new transaction record in the repository
+// func (cs *transactionService) CreateTransaction(transaction *models.Transaction) error {
+// 	return cs.repo.Create(transaction)
+// }
 
 // Updates an existing transaction record in the repository
-func (s *transactionService) UpdateTransaction(transaction *models.Transaction) error {
-	return s.repo.Update(transaction)
-}
+// func (cs *transactionService) UpdateTransaction(transaction *models.Transaction) error {
+// 	return cs.repo.Update(transaction)
+// }
 
 // Deletes a transaction by its ID in the repository
-func (s *transactionService) DeleteTransaction(id uuid.UUID) error {
-	return s.repo.Delete(id)
-}
+// func (cs *transactionService) DeleteTransaction(id uuid.UUID) error {
+// 	return cs.repo.Delete(id)
+// }

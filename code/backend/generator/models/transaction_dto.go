@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Transaction struct {
+type TransactionDTO struct {
 	CustomerID uuid.UUID `json:"customer_id"`
 	Amount     float64   `json:"amount"`
 	Time       time.Time `json:"time"`

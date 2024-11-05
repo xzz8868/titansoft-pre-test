@@ -2,8 +2,6 @@ package services
 
 import (
 	"bytes"
-	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -14,10 +12,12 @@ import (
 	"github.com/xzz8868/titansoft-pre-test/code/backend/generator/models"
 )
 
+const str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 // CustomerService defines the interface for customer-related operations
 type CustomerService interface {
-	GenerateCustomerData(num int) ([]models.Customer, error)
-	CreateMultiCustomersAPICall(ctx context.Context, customers []models.Customer) (int, int, error)
+	GenerateCustomerData(num int) ([]models.CustomerDTO, error)
+	CreateMultiCustomersAPICall(customers []models.CustomerDTO) (int, int, error)
 }
 
 // customerService is the concrete implementation of CustomerService
@@ -34,12 +34,12 @@ var emailDomains = []string{"@gmail.com", "@yahoo.com.tw", "@outlook.com", "@icl
 	"@aol.com", "@mail.com", "@yandex.com", "@protonmail.com", "@gmx.com"}
 
 // GenerateCustomerData generates a list of random customer data
-func (cs *customerService) GenerateCustomerData(num int) ([]models.Customer, error) {
+func (cs *customerService) GenerateCustomerData(num int) ([]models.CustomerDTO, error) {
 	log.Printf("Generating data for %d customers", num)
-	var customers []models.Customer
+	var customers []models.CustomerDTO
 	for i := 0; i < num; i++ {
 		name := cs.generateRandomName()
-		customer := models.Customer{
+		customer := models.CustomerDTO{
 			Name:     name,
 			Password: cs.generateRandomPassword(),
 			Email:    cs.generateRandomEmail(name),
@@ -52,74 +52,74 @@ func (cs *customerService) GenerateCustomerData(num int) ([]models.Customer, err
 }
 
 // CreateMultiCustomersAPICall sends a batch of customer data to the backend API
-func (cs *customerService) CreateMultiCustomersAPICall(ctx context.Context, customers []models.Customer) (int, int, error) {
-	client := &http.Client{}
-	successCount := 0
-	failCount := 0
+func (cs *customerService) CreateMultiCustomersAPICall(customers []models.CustomerDTO) (int, int, error) {
+    successCount := 0
+    failCount := 0
 
-	// Serialize customer data to JSON
-	customersJson, err := json.Marshal(customers)
-	if err != nil {
-		log.Printf("JSON marshalling error: %v", err)
-		return successCount, failCount, err
-	}
+    // Serialize customer data to JSON
+    customersJSON, err := json.Marshal(customers)
+    if err != nil {
+        log.Printf("JSON marshalling error: %v", err)
+        return successCount, failCount, err
+    }
 
-	// Construct the API request
-	url := fmt.Sprintf("%s/customers/multi", cs.cfg.BackendServerEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(customersJson))
-	if err != nil {
-		log.Printf("Request creation error: %v", err)
-		return successCount, failCount, err
-	}
+    // Construct the API request
+    url := fmt.Sprintf("%s/customers/multi", cs.cfg.BackendServerEndpoint)
+    req, err := http.NewRequest("POST", url, bytes.NewBuffer(customersJSON))
+    if err != nil {
+        log.Printf("Request creation error: %v", err)
+        return successCount, failCount, err
+    }
+    req.Header.Set("Content-Type", "application/json")
 
-	req.Header.Set("Content-Type", "application/json")
+    // Execute the HTTP request
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        log.Printf("HTTP request error: %v", err)
+        return successCount, failCount, err
+    }
+    defer resp.Body.Close()
 
-	// Execute the HTTP request
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("HTTP request error: %v", err)
-		return successCount, failCount, err
-	}
-	defer resp.Body.Close()
+    // Handle response based on status code
+    if resp.StatusCode == http.StatusCreated {
+        var result map[string]int
+        if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+            log.Printf("JSON decoding error: %v", err)
+            return successCount, failCount, err
+        }
+        successCount = result["successCount"]
+        failCount = result["failCount"]
+    } else {
+        log.Printf("HTTP response status error: %d", resp.StatusCode)
+        return successCount, failCount, fmt.Errorf("failed to create customers with status code: %d", resp.StatusCode)
+    }
 
-	// Handle response based on status code
-	if resp.StatusCode == http.StatusCreated {
-		var result map[string]int
-		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-			log.Printf("JSON decoding error: %v", err)
-			return successCount, failCount, err
-		}
-		successCount = result["successCount"]
-		failCount = result["failCount"]
-	} else {
-		log.Printf("HTTP response status error: %d", resp.StatusCode)
-		return successCount, failCount, fmt.Errorf("failed to create customers with status code: %d", resp.StatusCode)
-	}
-
-	log.Printf("API calls completed with %d successes and %d failures", successCount, failCount)
-	return successCount, failCount, nil
+    log.Printf("API calls completed with %d successes and %d failures", successCount, failCount)
+    return successCount, failCount, nil
 }
 
-// generateRandomName generates a random 8-character hexadecimal string as a name
+
+// generateRandomName generates a random 8-character string as a name
 func (cs *customerService) generateRandomName() string {
-	bytes := make([]byte, 4)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		log.Printf("Error generating random name: %v", err)
-		panic(err)
-	}
-	return hex.EncodeToString(bytes)
+	return generateRandomString(8)
 }
 
-// generateRandomPassword generates a random 16-character hexadecimal password
+
+// generateRandomPassword generates a random 16-character password
 func (cs *customerService) generateRandomPassword() string {
-	bytes := make([]byte, 8)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		log.Printf("Error generating random password: %v", err)
-		panic(err)
+	return generateRandomString(16)
+}
+
+// generateRandomString generates random string
+func generateRandomString(n int) string {
+	strLen := len(str)
+	result := make([]byte, n)
+	bytes := []byte(str)
+	for i := 0; i < n; i++ {
+		result[i] = bytes[rand.Intn(strLen)]
 	}
-	return hex.EncodeToString(bytes)
+	return string(result)
 }
 
 // generateRandomEmail creates an email address by combining a name with a random domain

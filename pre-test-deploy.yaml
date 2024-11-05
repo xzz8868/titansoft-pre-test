@@ -115,12 +115,11 @@ spec:
         image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-web-server:11e2426"
         resources:
           limits:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: "0.5"
+            memory: "0.5Gi"
           requests:
-            cpu: "250m"
-            memory: "256Mi"
-
+            cpu: "125m"
+            memory: "128Mi"
 ---
 apiVersion: "v1"
 kind: "Service"
@@ -166,6 +165,9 @@ kind: Ingress
 metadata:
   name: pre-test-ingress
   namespace: pre-test
+  annotations:
+    # Enable HTTPS redirection
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   tls:
@@ -173,7 +175,8 @@ spec:
       - pre-test.davidliao.net
       secretName: tls-secret
   rules:
-  - http:
+  - host: pre-test.davidliao.net
+    http:
       paths:
       - path: /customers
         pathType: Prefix
