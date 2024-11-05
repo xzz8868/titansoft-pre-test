@@ -2,7 +2,6 @@ package services
 
 import (
 	"bytes"
-	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -17,7 +16,7 @@ import (
 // CustomerService defines the interface for customer-related operations
 type CustomerService interface {
 	GenerateCustomerData(num int) ([]models.Customer, error)
-	CreateMultiCustomersAPICall(ctx context.Context, customers []models.Customer) (int, int, error)
+	CreateMultiCustomersAPICall(customers []models.Customer) (int, int, error)
 }
 
 // customerService is the concrete implementation of CustomerService
@@ -52,7 +51,7 @@ func (cs *customerService) GenerateCustomerData(num int) ([]models.Customer, err
 }
 
 // CreateMultiCustomersAPICall sends a batch of customer data to the backend API
-func (cs *customerService) CreateMultiCustomersAPICall(ctx context.Context, customers []models.Customer) (int, int, error) {
+func (cs *customerService) CreateMultiCustomersAPICall(customers []models.Customer) (int, int, error) {
 	client := &http.Client{}
 	successCount := 0
 	failCount := 0
@@ -66,7 +65,7 @@ func (cs *customerService) CreateMultiCustomersAPICall(ctx context.Context, cust
 
 	// Construct the API request
 	url := fmt.Sprintf("%s/customers/multi", cs.cfg.BackendServerEndpoint)
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(customersJson))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(customersJson))
 	if err != nil {
 		log.Printf("Request creation error: %v", err)
 		return successCount, failCount, err

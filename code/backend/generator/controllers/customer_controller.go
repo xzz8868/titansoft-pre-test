@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 
 // CustomerController defines the interface for customer-related operations
 type CustomerController interface {
-	GenerateAndSendCustomerData(c echo.Context) error
+	GenerateAndSendCustomerData(ctx echo.Context) error
 }
 
 // customerController is the concrete implementation of CustomerController
@@ -31,16 +30,16 @@ func NewCustomerController(customerService services.CustomerService) CustomerCon
 }
 
 // GenerateAndSendCustomerData handles generating customer data and sending it to the backend
-func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error {
+func (cc *customerController) GenerateAndSendCustomerData(ctx echo.Context) error {
 	// Parse the 'num' query parameter and validate it
-	numStr := c.QueryParam("num")
+	numStr := ctx.QueryParam("num")
 	num, err := strconv.Atoi(numStr)
 	if err != nil || num <= 0 {
 		log.Printf("Error converting num parameter: %v", err)
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of records"})
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid number of records"})
 	}
 	if num > 2000 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "num over 2000"})
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "num over 2000"})
 	}
 
 	log.Printf("Received request to generate %d customer records", num)
@@ -57,18 +56,17 @@ func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error 
 		customers, err := cc.customerService.GenerateCustomerData(num)
 		if err != nil {
 			log.Printf("Error generating customer data: %v", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate customer data"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate customer data"})
 		}
 		generateDuration += time.Since(generateStartTime)
 
 		sendAPIStartTime := time.Now()
 		log.Println("Starting API call to send customer data")
 		// Send customer data to the backend server using the service interface
-		ctx := context.Background()
-		_, failedCount, err := cc.customerService.CreateMultiCustomersAPICall(ctx, customers)
+		_, failedCount, err := cc.customerService.CreateMultiCustomersAPICall(customers)
 		if err != nil {
 			log.Printf("Error during API call to backend: %v", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to send customer data to backend: %s", err)})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Failed to send customer data to backend: %s", err)})
 		}
 		sendDuration += time.Since(sendAPIStartTime)
 
@@ -82,7 +80,7 @@ func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error 
 				if sameFailureCounter >= 5 {
 					// Stop retries after 5 consecutive constant failures
 					log.Println("Persistent failures reached, stopping retries")
-					return c.JSON(http.StatusInternalServerError, map[string]string{
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{
 						"error":  "Persistent failures, stopping retries",
 						"failed": strconv.Itoa(failedCount),
 					})
@@ -102,7 +100,7 @@ func (cc *customerController) GenerateAndSendCustomerData(c echo.Context) error 
 	}
 
 	// Return success response with generation and sending durations
-	return c.JSON(http.StatusOK, map[string]string{
+	return ctx.JSON(http.StatusOK, map[string]string{
 		"status":          "Customer data generated and sent to backend server",
 		"generation_time": fmt.Sprintf("%v", generateDuration),
 		"send_time":       fmt.Sprintf("%v", sendDuration),

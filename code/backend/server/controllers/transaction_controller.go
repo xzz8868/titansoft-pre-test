@@ -10,23 +10,35 @@ import (
 	"github.com/xzz8868/titansoft-pre-test/code/backend/server/services"
 )
 
-// TransactionController handles transaction-related requests.
-type TransactionController struct {
-	service services.TransactionService
+// TransactionController defines the interface for transaction-related handlers
+type TransactionController interface {
+	GetTransactionsByCustomerID(ctx echo.Context) error
+	GetDateRangeTransactionsByCustomerID(ctx echo.Context) error
+	CreateTransaction(ctx echo.Context) error
+	CreateMultiTransactions(ctx echo.Context) error
+	UpdateTransaction(ctx echo.Context) error
+	DeleteTransaction(ctx echo.Context) error
+}
+
+// transactionController is the concrete implementation of TransactionController
+type transactionController struct {
+	transactionService services.TransactionService
 }
 
 // NewTransactionController initializes a new TransactionController.
-func NewTransactionController(service services.TransactionService) *TransactionController {
-	return &TransactionController{service}
+func NewTransactionController(transactionService services.TransactionService) TransactionController {
+	return &transactionController{
+		transactionService: transactionService,
+	}
 }
 
 // GetTransactionsByCustomerID retrieves all transactions for a specified customer.
-func (t *TransactionController) GetTransactionsByCustomerID(ctx echo.Context) error {
+func (tc *transactionController) GetTransactionsByCustomerID(ctx echo.Context) error {
 	customerID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Customer ID"})
 	}
-	transactions, err := t.service.GetTransactionsByCustomerID(customerID)
+	transactions, err := tc.transactionService.GetTransactionsByCustomerID(customerID)
 	if err != nil {
 		return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
@@ -34,7 +46,7 @@ func (t *TransactionController) GetTransactionsByCustomerID(ctx echo.Context) er
 }
 
 // GetDateRangeTransactionsByCustomerID retrieves transactions within a date range for a specified customer.
-func (t *TransactionController) GetDateRangeTransactionsByCustomerID(ctx echo.Context) error {
+func (tc *transactionController) GetDateRangeTransactionsByCustomerID(ctx echo.Context) error {
 	customerID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Customer ID"})
@@ -43,7 +55,7 @@ func (t *TransactionController) GetDateRangeTransactionsByCustomerID(ctx echo.Co
 	from := ctx.QueryParam("from")
 	to := ctx.QueryParam("to")
 
-	transactions, err := t.service.GetDateRangeTransactionsByCustomerID(customerID, from, to)
+	transactions, err := tc.transactionService.GetDateRangeTransactionsByCustomerID(customerID, from, to)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
@@ -51,20 +63,20 @@ func (t *TransactionController) GetDateRangeTransactionsByCustomerID(ctx echo.Co
 }
 
 // CreateTransaction creates a new transaction with a generated ID.
-func (t *TransactionController) CreateTransaction(ctx echo.Context) error {
+func (tc *transactionController) CreateTransaction(ctx echo.Context) error {
 	transaction := new(models.Transaction)
 	if err := ctx.Bind(transaction); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	transaction.ID = uuid.New() // Generate a new UUID for the transaction
-	if err := t.service.CreateTransaction(transaction); err != nil {
+	if err := tc.transactionService.CreateTransaction(transaction); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusCreated, transaction)
 }
 
 // CreateMultiTransactions creates multiple transactions from the provided DTOs.
-func (t *TransactionController) CreateMultiTransactions(ctx echo.Context) error {
+func (tc *transactionController) CreateMultiTransactions(ctx echo.Context) error {
 	var transactions []*models.TransactionDTO
 	if err := ctx.Bind(&transactions); err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -74,7 +86,7 @@ func (t *TransactionController) CreateMultiTransactions(ctx echo.Context) error 
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "transactions length over 10000"})
 	}
 
-	if err := t.service.CreateMultiTransactions(transactions); err != nil {
+	if err := tc.transactionService.CreateMultiTransactions(transactions); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
@@ -86,7 +98,7 @@ func (t *TransactionController) CreateMultiTransactions(ctx echo.Context) error 
 }
 
 // UpdateTransaction updates an existing transaction specified by ID.
-func (t *TransactionController) UpdateTransaction(ctx echo.Context) error {
+func (tc *transactionController) UpdateTransaction(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
@@ -96,19 +108,19 @@ func (t *TransactionController) UpdateTransaction(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	transaction.ID = id // Set the transaction ID for updating
-	if err := t.service.UpdateTransaction(transaction); err != nil {
+	if err := tc.transactionService.UpdateTransaction(transaction); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, transaction)
 }
 
 // DeleteTransaction deletes a transaction specified by ID.
-func (t *TransactionController) DeleteTransaction(ctx echo.Context) error {
+func (tc *transactionController) DeleteTransaction(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
-	if err := t.service.DeleteTransaction(id); err != nil {
+	if err := tc.transactionService.DeleteTransaction(id); err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent) // Return 204 No Content on successful deletion

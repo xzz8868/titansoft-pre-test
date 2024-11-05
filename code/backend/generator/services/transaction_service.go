@@ -2,7 +2,6 @@ package services
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,7 +17,7 @@ import (
 
 // TransactionService defines the interface for transaction-related operations
 type TransactionService interface {
-	GenerateAndSendTransactions(ctx context.Context, numTransactions int, numCustomers int) error
+	GenerateAndSendTransactions(numTransactions int, numCustomers int) error
 }
 
 // transactionService is the concrete implementation of TransactionService
@@ -32,9 +31,9 @@ func NewTransactionService(cfg *config.Config) TransactionService {
 }
 
 // GenerateAndSendTransactions generates transaction data and sends it to the backend server
-func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, numTransactions int, numCustomers int) error {
+func (ts *transactionService) GenerateAndSendTransactions(numTransactions int, numCustomers int) error {
 	// Step 1: Retrieve customer IDs
-	customerIDs, err := ts.getCustomerIDs(ctx, numCustomers)
+	customerIDs, err := ts.getCustomerIDs(numCustomers)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve customer IDs: %w", err)
 	}
@@ -47,7 +46,7 @@ func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, n
 	transactions := ts.generateTransactions(numTransactions, customerIDs)
 
 	// Step 3: Send transactions to backend
-	if err := ts.sendTransactions(ctx, transactions); err != nil {
+	if err := ts.sendTransactions(transactions); err != nil {
 		return fmt.Errorf("failed to send transactions: %w", err)
 	}
 
@@ -55,9 +54,9 @@ func (ts *transactionService) GenerateAndSendTransactions(ctx context.Context, n
 }
 
 // getCustomerIDs retrieves customer IDs from the backend server
-func (ts *transactionService) getCustomerIDs(ctx context.Context, numCustomers int) ([]uuid.UUID, error) {
+func (ts *transactionService) getCustomerIDs(numCustomers int) ([]uuid.UUID, error) {
 	url := fmt.Sprintf("%s/customers/limit/%d", ts.cfg.BackendServerEndpoint, numCustomers)
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +101,7 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 			transactions[i] = models.Transaction{
 				CustomerID: customerIDs[rand.Intn(customerCount)],
 				Amount:     rand.Float64() * 1000000, // Random amount up to $1000000
-				Time:       randomTimeWithinMonths(18),
+				Time:       ts.randomTimeWithinMonths(18),
 			}
 		}(i)
 	}
@@ -112,7 +111,7 @@ func (ts *transactionService) generateTransactions(numTransactions int, customer
 }
 
 // sendTransactions posts the transactions to the backend server
-func (ts *transactionService) sendTransactions(ctx context.Context, transactions []models.Transaction) error {
+func (ts *transactionService) sendTransactions(transactions []models.Transaction) error {
 	url := fmt.Sprintf("%s/transactions/multi", ts.cfg.BackendServerEndpoint)
 	data, err := json.Marshal(transactions)
 	if err != nil {
@@ -120,7 +119,7 @@ func (ts *transactionService) sendTransactions(ctx context.Context, transactions
 	}
 
 	// Create POST request with transaction data
-	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
+	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
 	}
@@ -144,7 +143,7 @@ func (ts *transactionService) sendTransactions(ctx context.Context, transactions
 }
 
 // randomTimeWithinMonths generates a random time within the past specified months
-func randomTimeWithinMonths(months int) time.Time {
+func (ts *transactionService) randomTimeWithinMonths(months int) time.Time {
 	now := time.Now()
 	past := now.AddDate(0, -months, 0)
 	delta := now.Unix() - past.Unix()
