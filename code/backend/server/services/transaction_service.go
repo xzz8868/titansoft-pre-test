@@ -11,10 +11,10 @@ import (
 type TransactionService interface {
 	GetTransactionsByCustomerID(id uuid.UUID) ([]*models.TransactionDTO, error)
 	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.TransactionDTO, error)
-	CreateTransaction(transaction *models.Transaction) error
 	CreateMultiTransactions(transactions []*models.TransactionDTO) error
-	UpdateTransaction(transaction *models.Transaction) error
-	DeleteTransaction(id uuid.UUID) error
+	// CreateTransaction(transaction *models.Transaction) error
+	// UpdateTransaction(transaction *models.Transaction) error
+	// DeleteTransaction(id uuid.UUID) error
 }
 
 type transactionService struct {
@@ -70,16 +70,12 @@ func (cs *transactionService) mapTransactionsToDTOs(transactions []*models.Trans
 	return transactionDTOs
 }
 
-// Creates a new transaction record in the repository
-func (cs *transactionService) CreateTransaction(transaction *models.Transaction) error {
-	return cs.repo.Create(transaction)
-}
 
 // Creates multiple transactions by mapping DTOs to ORM models and saving them in the repository
 func (cs *transactionService) CreateMultiTransactions(transactions []*models.TransactionDTO) error {
 	var transactionORMs []*models.Transaction
 	for _, dto := range transactions {
-
+		
 		// Map TransactionDTO to Transaction ORM model
 		transactionORM := &models.Transaction{
 			ID:         uuid.New(),
@@ -87,20 +83,25 @@ func (cs *transactionService) CreateMultiTransactions(transactions []*models.Tra
 			Amount:     dto.Amount,
 			Time:       dto.Time,
 		}
-
+		
 		transactionORMs = append(transactionORMs, transactionORM)
 	}
-
+	
 	// Call the Repository layer to save transactions
 	return cs.repo.CreateMultiTransactions(transactionORMs)
 }
 
+// Creates a new transaction record in the repository
+// func (cs *transactionService) CreateTransaction(transaction *models.Transaction) error {
+// 	return cs.repo.Create(transaction)
+// }
+
 // Updates an existing transaction record in the repository
-func (cs *transactionService) UpdateTransaction(transaction *models.Transaction) error {
-	return cs.repo.Update(transaction)
-}
+// func (cs *transactionService) UpdateTransaction(transaction *models.Transaction) error {
+// 	return cs.repo.Update(transaction)
+// }
 
 // Deletes a transaction by its ID in the repository
-func (cs *transactionService) DeleteTransaction(id uuid.UUID) error {
-	return cs.repo.Delete(id)
-}
+// func (cs *transactionService) DeleteTransaction(id uuid.UUID) error {
+// 	return cs.repo.Delete(id)
+// }

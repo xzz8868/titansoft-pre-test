@@ -21,8 +21,8 @@ type CustomerService interface {
 	GetCustomerByID(id uuid.UUID) (*models.Customer, error)
 	UpdateCustomer(customer *models.Customer) error
 	UpdateCustomerPassword(customer *models.Customer) error
-	DeleteCustomer(id uuid.UUID) error
 	ResetAllCustomerData() error
+	// DeleteCustomer(id uuid.UUID) error
 }
 
 type customerService struct {
@@ -203,15 +203,15 @@ func (cs *customerService) UpdateCustomerPassword(customer *models.Customer) err
 	return cs.customerRepo.UpdatePassword(customer)
 }
 
-// DeleteCustomer removes a customer from the repository by their unique ID.
-func (cs *customerService) DeleteCustomer(id uuid.UUID) error {
-	return cs.customerRepo.DeleteCustomer(id)
-}
-
 // ResetAllCustomerData clears all customer data in the repository.
 func (cs *customerService) ResetAllCustomerData() error {
 	return cs.customerRepo.ResetAllCustomerData()
 }
+
+// DeleteCustomer removes a customer from the repository by their unique ID.
+// func (cs *customerService) DeleteCustomer(id uuid.UUID) error {
+// 	return cs.customerRepo.DeleteCustomer(id)
+// }
 
 // hashPassword hashes a password using the scrypt algorithm and encodes it in base64.
 func (cs *customerService) hashPassword(password string) (string, error) {

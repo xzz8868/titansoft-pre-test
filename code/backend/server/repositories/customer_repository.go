@@ -17,8 +17,8 @@ type CustomerRepository interface {
 	GetCustomerByID(id uuid.UUID) (*models.Customer, error)
 	UpdateCustomer(customer *models.Customer) error
 	UpdatePassword(customer *models.Customer) error
-	DeleteCustomer(id uuid.UUID) error
 	ResetAllCustomerData() error
+	// DeleteCustomer(id uuid.UUID) error
 }
 
 // customerRepository implements CustomerRepository using Gorm
@@ -80,11 +80,6 @@ func (cr *customerRepository) UpdatePassword(customer *models.Customer) error {
 	return cr.db.Model(&customer).Select("Password").Updates(customer).Error
 }
 
-// DeleteCustomer deletes a customer by ID
-func (cr *customerRepository) DeleteCustomer(id uuid.UUID) error {
-	return cr.db.Delete(&models.Customer{}, "id = ?", id).Error
-}
-
 // ResetAllCustomerData deletes all customer records and associated data
 func (cr *customerRepository) ResetAllCustomerData() error {
 	err := cr.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Customer{}).Error
@@ -94,3 +89,8 @@ func (cr *customerRepository) ResetAllCustomerData() error {
 	// Related data is deleted due to foreign key constraints, if any
 	return nil
 }
+
+// DeleteCustomer deletes a customer by ID
+// func (cr *customerRepository) DeleteCustomer(id uuid.UUID) error {
+// 	return cr.db.Delete(&models.Customer{}, "id = ?", id).Error
+// }

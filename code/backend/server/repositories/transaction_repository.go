@@ -13,11 +13,11 @@ import (
 type TransactionRepository interface {
 	GetTransactionsByCustomerID(id uuid.UUID) ([]*models.Transaction, error)
 	GetDateRangeTransactionsByCustomerID(customerID uuid.UUID, from string, to string) ([]*models.Transaction, error)
-	Create(transaction *models.Transaction) error
 	CreateMultiTransactions(transactions []*models.Transaction) error
-	Update(transaction *models.Transaction) error
-	Delete(id uuid.UUID) error
 	GetTotalAmountsByCustomersInPastYear() (map[uuid.UUID]float64, error)
+	// CreateTransaction(transaction *models.Transaction) error
+	// UpdateTransaction(transaction *models.Transaction) error
+	// DeleteTransaction(id uuid.UUID) error
 }
 
 // transactionRepository is the concrete implementation of TransactionRepository
@@ -48,25 +48,10 @@ func (tr *transactionRepository) GetDateRangeTransactionsByCustomerID(customerID
 	return transactions, nil
 }
 
-// Create inserts a new transaction record into the database
-func (tr *transactionRepository) Create(transaction *models.Transaction) error {
-	return tr.db.Create(transaction).Error
-}
-
 // CreateMultiTransactions inserts multiple transaction records into the database
 func (tr *transactionRepository) CreateMultiTransactions(transactions []*models.Transaction) error {
 	batchSize := 100
 	return tr.db.CreateInBatches(transactions, batchSize).Error
-}
-
-// Update modifies an existing transaction record in the database
-func (tr *transactionRepository) Update(transaction *models.Transaction) error {
-	return tr.db.Save(transaction).Error
-}
-
-// Delete removes a transaction record by its ID
-func (tr *transactionRepository) Delete(id uuid.UUID) error {
-	return tr.db.Delete(&models.Transaction{}, "id = ?", id).Error
 }
 
 // GetTotalAmountsByCustomersInPastYear calculates the total transaction amounts for each customer in the past year
@@ -94,3 +79,18 @@ func (tr *transactionRepository) GetTotalAmountsByCustomersInPastYear() (map[uui
 
 	return totalAmounts, nil
 }
+
+// CreateTransaction inserts a new transaction record into the database
+// func (tr *transactionRepository) CreateTransaction(transaction *models.Transaction) error {
+// 	return tr.db.Create(transaction).Error
+// }
+
+// UpdateTransaction modifies an existing transaction record in the database
+// func (tr *transactionRepository) UpdateTransaction(transaction *models.Transaction) error {
+// 	return tr.db.Save(transaction).Error
+// }
+
+// DeleteTransaction removes a transaction record by its ID
+// func (tr *transactionRepository) DeleteTransaction(id uuid.UUID) error {
+// 	return tr.db.Delete(&models.Transaction{}, "id = ?", id).Error
+// }

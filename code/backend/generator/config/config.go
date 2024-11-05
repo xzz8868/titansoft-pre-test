@@ -10,7 +10,6 @@ import (
 type Config struct {
 	GeneratorServerPort   string // Port for the generator server to listen on
 	BackendServerEndpoint string // Endpoint URL for the backend server
-	RequestPerSecond      int    // Number of requests allowed per second
 }
 
 // LoadConfig initializes and returns a Config struct, populated with environment variables or defaults

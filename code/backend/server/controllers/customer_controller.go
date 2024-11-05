@@ -20,8 +20,8 @@ type CustomerController interface {
 	GetCustomerByID(ctx echo.Context) error
 	UpdateCustomer(ctx echo.Context) error
 	UpdateCustomerPassword(ctx echo.Context) error
-	DeleteCustomer(ctx echo.Context) error
 	ResetAllCustomerData(ctx echo.Context) error
+	// DeleteCustomer(ctx echo.Context) error
 }
 
 // CustomerController handles HTTP requests related to customers
@@ -147,18 +147,6 @@ func (cc *customerController) UpdateCustomerPassword(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, customer)
 }
 
-// DeleteCustomer removes a customer by their unique ID
-func (cc *customerController) DeleteCustomer(ctx echo.Context) error {
-	id, err := uuid.Parse(ctx.Param("id"))
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
-	}
-	if err := cc.customerService.DeleteCustomer(id); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	}
-	return ctx.JSON(http.StatusOK, map[string]string{"message": "Customer deleted successfully"})
-}
-
 // ResetAllCustomerData resets all customer data in the system
 func (cc *customerController) ResetAllCustomerData(ctx echo.Context) error {
 	if err := cc.customerService.ResetAllCustomerData(); err != nil {
@@ -166,3 +154,16 @@ func (cc *customerController) ResetAllCustomerData(ctx echo.Context) error {
 	}
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "All customer data reset successfully"})
 }
+
+// DeleteCustomer removes a customer by their unique ID
+// func (cc *customerController) DeleteCustomer(ctx echo.Context) error {
+// 	id, err := uuid.Parse(ctx.Param("id"))
+// 	if err != nil {
+// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
+// 	}
+// 	if err := cc.customerService.DeleteCustomer(id); err != nil {
+// 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+// 	}
+// 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Customer deleted successfully"})
+// }
+
