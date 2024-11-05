@@ -25,7 +25,7 @@ func NewCustomerController(service services.CustomerService) *CustomerController
 func (c *CustomerController) GetAllCustomers(ctx echo.Context) error {
 	customers, err := c.service.GetAllCustomers()
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, customers)
 }
@@ -34,11 +34,11 @@ func (c *CustomerController) GetAllCustomers(ctx echo.Context) error {
 func (c *CustomerController) GetLimitedCustomers(ctx echo.Context) error {
 	num, err := strconv.Atoi(ctx.Param("num"))
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	customers, err := c.service.GetLimitedCustomers(num)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, customers)
 }
@@ -47,14 +47,14 @@ func (c *CustomerController) GetLimitedCustomers(ctx echo.Context) error {
 func (c *CustomerController) CreateCustomer(ctx echo.Context) error {
 	customer := new(models.Customer)
 	if err := ctx.Bind(customer); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	if len(customer.Password) < 8 {
-		return ctx.JSON(http.StatusBadRequest, "Password at least 8 character")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Password must be at least 8 characters"})
 	}
 	customer.ID = uuid.New()
 	if err := c.service.CreateCustomer(customer); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusCreated, customer)
 }
@@ -63,16 +63,16 @@ func (c *CustomerController) CreateCustomer(ctx echo.Context) error {
 func (c *CustomerController) CreateMultiCustomers(ctx echo.Context) error {
 	var customers []*models.Customer
 	if err := ctx.Bind(&customers); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
-	
-	if len(customers)>2000{
-		return ctx.JSON(http.StatusBadRequest,  map[string]string{"error": "customers length over 2000"})
+
+	if len(customers) > 2000 {
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Customers length over 2000"})
 	}
 
 	successCount, failCount, err := c.service.CreateMultiCustomers(customers)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	result := map[string]int{
@@ -86,11 +86,11 @@ func (c *CustomerController) CreateMultiCustomers(ctx echo.Context) error {
 func (c *CustomerController) GetCustomerByID(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 	customer, err := c.service.GetCustomerByID(id)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, err.Error())
+		return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, customer)
 }
@@ -99,15 +99,15 @@ func (c *CustomerController) GetCustomerByID(ctx echo.Context) error {
 func (c *CustomerController) UpdateCustomer(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 	customer := new(models.Customer)
 	if err := ctx.Bind(customer); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	customer.ID = id
 	if err := c.service.UpdateCustomer(customer); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, customer)
 }
@@ -116,18 +116,18 @@ func (c *CustomerController) UpdateCustomer(ctx echo.Context) error {
 func (c *CustomerController) UpdateCustomerPassword(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 	customer := new(models.Customer)
 	if err := ctx.Bind(customer); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	if len(customer.Password) < 8 {
-		return ctx.JSON(http.StatusBadRequest, "Password at least 8 character")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Password must be at least 8 characters"})
 	}
 	customer.ID = id
 	if err := c.service.UpdateCustomerPassword(customer); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, customer)
 }
@@ -136,19 +136,18 @@ func (c *CustomerController) UpdateCustomerPassword(ctx echo.Context) error {
 func (c *CustomerController) DeleteCustomer(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 	if err := c.service.DeleteCustomer(id); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	return ctx.NoContent(http.StatusNoContent)
+	return ctx.JSON(http.StatusOK, map[string]string{"message": "Customer deleted successfully"})
 }
 
 // ResetAllCustomerData resets all customer data in the system
 func (c *CustomerController) ResetAllCustomerData(ctx echo.Context) error {
 	if err := c.service.ResetAllCustomerData(); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-
-	return ctx.NoContent(http.StatusOK)
+	return ctx.JSON(http.StatusOK, map[string]string{"message": "All customer data reset successfully"})
 }

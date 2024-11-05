@@ -24,11 +24,11 @@ func NewTransactionController(service services.TransactionService) *TransactionC
 func (t *TransactionController) GetTransactionsByCustomerID(ctx echo.Context) error {
 	customerID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid Customer ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Customer ID"})
 	}
 	transactions, err := t.service.GetTransactionsByCustomerID(customerID)
 	if err != nil {
-		return ctx.JSON(http.StatusNotFound, err.Error())
+		return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, transactions)
 }
@@ -37,7 +37,7 @@ func (t *TransactionController) GetTransactionsByCustomerID(ctx echo.Context) er
 func (t *TransactionController) GetDateRangeTransactionsByCustomerID(ctx echo.Context) error {
 	customerID, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid Customer ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid Customer ID"})
 	}
 
 	from := ctx.QueryParam("from")
@@ -45,7 +45,7 @@ func (t *TransactionController) GetDateRangeTransactionsByCustomerID(ctx echo.Co
 
 	transactions, err := t.service.GetDateRangeTransactionsByCustomerID(customerID, from, to)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, transactions)
 }
@@ -54,11 +54,11 @@ func (t *TransactionController) GetDateRangeTransactionsByCustomerID(ctx echo.Co
 func (t *TransactionController) CreateTransaction(ctx echo.Context) error {
 	transaction := new(models.Transaction)
 	if err := ctx.Bind(transaction); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	transaction.ID = uuid.New() // Generate a new UUID for the transaction
 	if err := t.service.CreateTransaction(transaction); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusCreated, transaction)
 }
@@ -67,7 +67,7 @@ func (t *TransactionController) CreateTransaction(ctx echo.Context) error {
 func (t *TransactionController) CreateMultiTransactions(ctx echo.Context) error {
 	var transactions []*models.TransactionDTO
 	if err := ctx.Bind(&transactions); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 
 	if len(transactions) > 10000 {
@@ -75,7 +75,7 @@ func (t *TransactionController) CreateMultiTransactions(ctx echo.Context) error 
 	}
 
 	if err := t.service.CreateMultiTransactions(transactions); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
 	result := map[string]string{
@@ -89,15 +89,15 @@ func (t *TransactionController) CreateMultiTransactions(ctx echo.Context) error 
 func (t *TransactionController) UpdateTransaction(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 	transaction := new(models.Transaction)
 	if err := ctx.Bind(transaction); err != nil {
-		return ctx.JSON(http.StatusBadRequest, err.Error())
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
 	transaction.ID = id // Set the transaction ID for updating
 	if err := t.service.UpdateTransaction(transaction); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.JSON(http.StatusOK, transaction)
 }
@@ -106,10 +106,10 @@ func (t *TransactionController) UpdateTransaction(ctx echo.Context) error {
 func (t *TransactionController) DeleteTransaction(ctx echo.Context) error {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, "Invalid ID")
+		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
 	}
 	if err := t.service.DeleteTransaction(id); err != nil {
-		return ctx.JSON(http.StatusInternalServerError, err.Error())
+		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 	return ctx.NoContent(http.StatusNoContent) // Return 204 No Content on successful deletion
 }
