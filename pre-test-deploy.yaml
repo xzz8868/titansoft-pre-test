@@ -37,7 +37,7 @@ metadata:
   labels:
     app: "pre-test-server"
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: "pre-test-server"
@@ -48,7 +48,7 @@ spec:
     spec:
       containers:
       - name: "pre-test-server"
-        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-server:b2c299d"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-server:11e2426"
         envFrom:
         - configMapRef:
             name: "pre-test-server-config"
@@ -81,7 +81,7 @@ spec:
     spec:
       containers:
       - name: "pre-test-generator"
-        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-generator:b2c299d"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-generator:11e2426"
         envFrom:
         - configMapRef:
             name: "pre-test-generator-config"
@@ -112,7 +112,7 @@ spec:
     spec:
       containers:
       - name: "pre-test-web-server"
-        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-web-server:b2c299d"
+        image: "asia-east1-docker.pkg.dev/practice-project-406114/pre-test/pre-test-web-server:11e2426"
         resources:
           limits:
             cpu: "0.5"
@@ -165,9 +165,6 @@ kind: Ingress
 metadata:
   name: pre-test-ingress
   namespace: pre-test
-  annotations:
-    # Enable HTTPS redirection
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   tls:
